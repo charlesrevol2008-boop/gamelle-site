@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gamelle · Coach nutrition IA pour étudiants</title>
+<meta name="description" content="Gamelle, le coach nutrition IA des étudiants : donne ton budget, ton objectif, ton régime et ton équipement, et repars avec ta semaine de repas, ta liste de courses et son coût estimé.">
+<meta name="theme-color" content="#FFFFFF">
+<script>document.documentElement.classList.add("js")</script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Gabarito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12261C;
+  --ink-2:#3D5247;
+  --ink-3:#5E7166;
+  --green:#187A48;
+  --green-hover:#12643A;
+  --green-deep:#0E4A2C;
+  --green-soft:#D7EEDF;
+  --mint:#EFF7F1;
+  --citrus:#FFC83D;
+  --citrus-soft:#FFF3D1;
+  --line:#DCE7E0;
+  --white:#FFFFFF;
+  --shadow-sm:0 1px 2px rgba(18,38,28,.06),0 2px 6px rgba(18,38,28,.06);
+  --shadow-md:0 4px 10px rgba(18,38,28,.06),0 14px 34px rgba(18,38,28,.10);
+  --shadow-lg:0 10px 24px rgba(18,38,28,.08),0 34px 70px rgba(18,38,28,.16);
+  --radius:22px;
+  --font-display:"Gabarito",system-ui,sans-serif;
+  --font-body:"Figtree",system-ui,sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --gutter:clamp(16px,5vw,40px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scrollbar-color:#B9CCBF var(--white)}
+body{margin:0;background:var(--white);color:var(--ink);font:400 17px/1.6 var(--font-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;overflow-x:clip}
+::selection{background:var(--citrus);color:var(--ink)}
+::-webkit-scrollbar{width:12px}
+::-webkit-scrollbar-track{background:var(--white)}
+::-webkit-scrollbar-thumb{background:#B9CCBF;border-radius:99px;border:3px solid var(--white)}
+img,svg{display:block}
+a{color:var(--green);text-underline-offset:.2em;text-decoration-thickness:1.5px}
+a:hover{color:var(--green-hover)}
+:focus-visible{outline:3px solid var(--green);outline-offset:3px;border-radius:10px}
+h1,h2,h3{font-family:var(--font-display);color:var(--ink);margin:0;text-wrap:balance;letter-spacing:-.025em}
+h1{font-weight:800;font-size:clamp(2.5rem,7.4vw,4.6rem);line-height:1.02}
+h2{font-weight:800;font-size:clamp(2rem,4.6vw,3.1rem);line-height:1.06}
+h3{font-weight:700;font-size:1.3rem;line-height:1.2;letter-spacing:-.015em}
+p{margin:0;text-wrap:pretty}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 var(--gutter)}
+.num{font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border-radius:999px;font:700 1.05rem/1 var(--font-body);text-decoration:none;cursor:pointer;border:0;transition:background-color .2s,transform .25s var(--ease),box-shadow .25s var(--ease)}
+.btn svg{width:20px;height:20px;transition:transform .25s var(--ease)}
+.btn-primary{background:var(--green);color:var(--white);box-shadow:0 8px 20px rgba(24,122,72,.28)}
+.btn-primary:hover{background:var(--green-hover);color:var(--white);transform:translateY(-1px)}
+.btn-primary:hover svg{transform:translateX(3px)}
+.btn-primary:active{transform:translateY(1px);box-shadow:0 4px 10px rgba(24,122,72,.22)}
+.btn-ghost{background:var(--white);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn-ghost:hover{color:var(--ink);box-shadow:inset 0 0 0 1.5px #B9CCBF;background:var(--mint)}
+.btn-small{min-height:44px;padding:0 18px;font-size:.95rem}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+.site-header.scrolled{border-bottom-color:var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px;gap:24px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:800 1.5rem/1 var(--font-display);letter-spacing:-.03em}
+.logo:hover{color:var(--ink)}
+.logo svg{width:34px;height:34px}
+.nav-links{display:none;gap:30px;list-style:none;margin:0;padding:0}
+.nav-links a{color:var(--ink-2);text-decoration:none;font-weight:600;font-size:.98rem}
+.nav-links a:hover{color:var(--ink)}
+@media (min-width:900px){.nav-links{display:flex}}
+.nav-links a,.site-header .btn{white-space:nowrap}
+@media (max-width:1120px){.nav-links{gap:18px}.nav-links a{font-size:.92rem}}
+
+/* Hero */
+.hero{position:relative;padding:44px 0 72px;overflow:hidden;overflow:clip}
+.hero::before{content:"";position:absolute;inset:auto -20% -40% 30%;height:80%;background:radial-gradient(closest-side,var(--mint),transparent);z-index:-1}
+.hero-grid{display:grid;gap:56px;align-items:center}
+.hero-copy{max-width:620px}
+.hero h1 .hl{position:relative;white-space:nowrap;z-index:0}
+.hero h1 .hl::after{content:"";position:absolute;left:-.06em;right:-.06em;bottom:.06em;height:.34em;background:var(--citrus);border-radius:.2em;z-index:-1;transform-origin:left;animation:mark .9s var(--ease) .35s both}
+@keyframes mark{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.lede{margin-top:22px;font-size:clamp(1.08rem,2.2vw,1.25rem);line-height:1.55;color:var(--ink-2);max-width:34em}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.reassure{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:22px;padding:0;list-style:none;color:var(--ink-3);font-size:.94rem;font-weight:500}
+.reassure li{display:inline-flex;align-items:center;gap:7px}
+.reassure svg{width:18px;height:18px;color:var(--green)}
+@media (min-width:1000px){
+  .hero{padding:64px 0 96px}
+  .hero-grid{grid-template-columns:1.05fr .95fr;gap:40px}
+}
+
+/* Phone mockup */
+.stage{position:relative;justify-self:center;width:min(100%,360px);padding:10px 0 30px}
+.phone{position:relative;border-radius:46px;background:var(--ink);padding:11px;box-shadow:var(--shadow-lg);transform:rotate(1.5deg)}
+.screen{position:relative;border-radius:36px;overflow:hidden;background:#F6FAF7;height:600px;display:flex;flex-direction:column}
+.notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:99px;background:var(--ink);z-index:3}
+.chat-top{display:flex;align-items:center;gap:10px;padding:46px 18px 12px;background:var(--white);border-bottom:1px solid var(--line)}
+.chat-top .av{width:34px;height:34px;flex:none}
+.chat-top b{display:block;font:700 .98rem/1.1 var(--font-display)}
+.chat-top span{font-size:.75rem;color:var(--ink-3)}
+.chat-body{flex:1;padding:16px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;justify-content:flex-end}
+.msg{max-width:86%;padding:10px 13px;border-radius:18px;font-size:.84rem;line-height:1.45;transition:opacity .45s var(--ease),transform .55s var(--ease)}
+.js .msg{opacity:0;transform:translateY(10px) scale(.98)}
+.js .msg.in{opacity:1;transform:none}
+.msg.bot{background:var(--white);border:1px solid var(--line);border-bottom-left-radius:6px;align-self:flex-start;box-shadow:var(--shadow-sm)}
+.msg.me{background:var(--green);color:var(--white);border-bottom-right-radius:6px;align-self:flex-end;font-weight:600}
+.msg strong{font-weight:700}
+.msg .row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px dashed var(--line)}
+.msg .row:first-of-type{border-top:0}
+.msg .row em{font-style:normal;color:var(--ink-3)}
+.msg .src{display:block;margin-top:6px;font-size:.7rem;color:var(--ink-3)}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:12px 14px;background:var(--white);border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:6px;opacity:0;transition:opacity .25s}
+.typing.in{opacity:1}
+.typing i{width:6px;height:6px;border-radius:50%;background:#9DB3A6;animation:dot 1s infinite ease-in-out}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}
+.chat-input{margin:0 12px 14px;height:44px;border-radius:14px;background:var(--white);border:1.5px solid #7A8F82;display:flex;align-items:center;justify-content:space-between;padding:0 12px;color:var(--ink-3);font-size:.8rem}
+.chat-input svg{width:18px;height:18px;color:var(--green)}
+.tag{position:absolute;z-index:4;display:flex;align-items:center;gap:10px;background:var(--white);border-radius:16px;padding:10px 14px;box-shadow:var(--shadow-md);font-size:.82rem;line-height:1.25;color:var(--ink-2)}
+.tag b{display:block;font:800 1.15rem/1.1 var(--font-display);color:var(--ink);letter-spacing:-.02em}
+.tag .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none}
+.tag .ic svg{width:20px;height:20px}
+.tag-price{left:-46px;top:322px;transform:rotate(-3deg)}
+.tag-price .ic{background:var(--citrus);color:var(--ink)}
+.tag-prot{right:-38px;top:26px;transform:rotate(2.5deg)}
+.tag-prot .ic{background:var(--green-soft);color:var(--green)}
+.food{position:absolute;z-index:5;filter:drop-shadow(0 8px 14px rgba(18,38,28,.16))}
+.food-carrot{width:96px;left:-58px;bottom:96px;transform:rotate(-8deg)}
+@media (max-width:640px){.tag-price{display:none}.tag-prot{right:-6px;top:6px}.food-carrot{display:none}.screen{height:660px}.msg{font-size:.8rem}}
+.stage-note{margin-top:18px;text-align:center;font-size:.8rem;color:var(--ink-3)}
+
+/* Sections */
+section{scroll-margin-top:80px}
+.section{padding:88px 0}
+.section-mint{background:var(--mint)}
+.section-head{max-width:640px;margin-bottom:44px}
+.section-head p{margin-top:16px;font-size:1.12rem;color:var(--ink-2)}
+@media (min-width:1000px){.section{padding:120px 0}}
+
+/* How it works */
+.steps{display:grid;gap:14px;counter-reset:step;list-style:none;margin:0;padding:0}
+.step{position:relative;display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:start;background:var(--white);border-radius:var(--radius);padding:22px 22px 24px;box-shadow:var(--shadow-sm)}
+.step-n{grid-row:span 2;width:44px;height:44px;border-radius:14px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font:800 1.2rem/1 var(--font-display)}
+.step h3{padding-top:9px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;min-height:34px;padding:0 13px;border-radius:999px;background:var(--mint);color:var(--ink-2);font-weight:600;font-size:.88rem;white-space:nowrap}
+.chip.on{background:var(--green);color:var(--white)}
+.result{margin-top:14px;display:grid;gap:18px;align-items:center;background:var(--ink);color:var(--white);border-radius:var(--radius);padding:28px}
+.result h3{color:var(--white);font-size:1.5rem}
+.result ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.result li{display:flex;gap:12px;align-items:flex-start;color:#D5E3DA}
+.result li b{color:var(--white)}
+.result li svg{flex:none;width:22px;height:22px;color:var(--citrus);margin-top:2px}
+@media (min-width:860px){
+  .how{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px;align-items:start}
+  .how .section-head{position:sticky;top:110px;margin-bottom:0}
+  .result{grid-template-columns:auto 1fr;gap:32px}
+}
+
+/* Week example */
+.week{display:grid;gap:20px}
+.week-card{background:var(--white);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow-md);overflow:hidden}
+.week-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--line)}
+.week-head h3{font-size:1.15rem}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:.78rem;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--mint);color:var(--green-deep)}
+.pill.c{background:var(--citrus-soft);color:#6B4A00}
+.days{list-style:none;margin:0;padding:0}
+.day{display:grid;grid-template-columns:52px 1fr;gap:4px 14px;padding:14px 24px;border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day-name{grid-row:span 2;font:800 .95rem/1.4 var(--font-display);color:var(--green)}
+.meal{display:flex;gap:10px;align-items:baseline;font-size:.95rem;color:var(--ink)}
+.meal .lb{flex:none;width:44px;font-size:.78rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.meal i{font-style:normal;color:var(--ink-3)}
+.week-foot{padding:14px 24px;background:var(--mint);font-size:.82rem;color:var(--ink-2)}
+.list-card{background:var(--ink);color:var(--white);border-radius:28px;padding:26px 24px;box-shadow:var(--shadow-md);align-self:start}
+.list-card h3{color:var(--white);font-size:1.15rem;margin-bottom:6px}
+.list-card > p{color:#B9CCBF;font-size:.88rem}
+.items{list-style:none;margin:18px 0 0;padding:0}
+.items li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:12px 0;border-top:1px solid rgba(255,255,255,.12);font-size:.95rem}
+.items li small{display:block;color:#9DB3A6;font-size:.78rem}
+.items .price{font:800 1.1rem/1 var(--font-display);color:var(--citrus);white-space:nowrap}
+.basket{margin-top:18px;padding:16px;border-radius:18px;background:rgba(255,255,255,.07)}
+.basket b{display:block;font:800 1.6rem/1.1 var(--font-display);color:var(--white);letter-spacing:-.02em}
+.basket span{font-size:.84rem;color:#B9CCBF}
+.list-card .src{margin-top:14px;font-size:.78rem;color:#9DB3A6}
+@media (min-width:960px){.week{grid-template-columns:1.45fr 1fr;gap:28px}}
+
+/* Budgets */
+.tiers{display:grid;gap:22px}
+.note{font-size:.85rem;color:var(--ink-3)}
+.tabs{display:flex;gap:6px;padding:6px;border-radius:999px;background:var(--white);box-shadow:var(--shadow-sm);width:max-content;max-width:100%;overflow-x:auto}
+.tab{appearance:none;border:0;background:transparent;cursor:pointer;min-height:48px;padding:0 20px;border-radius:999px;font:700 1rem/1 var(--font-body);color:var(--ink-2);white-space:nowrap;transition:background-color .25s var(--ease),color .2s}
+.tab small{display:block;font-weight:600;font-size:.74rem;color:var(--ink-3);margin-top:3px}
+.tab:hover{background:var(--mint);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--green);color:var(--white)}
+.tab[aria-selected="true"] small{color:#EAF6EE}
+.panel{display:grid;gap:22px;background:var(--white);border-radius:28px;padding:28px 24px;box-shadow:var(--shadow-md)}
+.panel[hidden]{display:none}
+.panel>div:first-child{position:relative}
+.panel-art{width:76px;height:76px;margin-bottom:14px;filter:drop-shadow(0 6px 10px rgba(18,38,28,.12))}
+.panel-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.panel-top .amount{font:800 clamp(2.6rem,7vw,3.6rem)/1 var(--font-display);letter-spacing:-.04em}
+.panel-top .amount small{font-size:.42em;letter-spacing:-.01em;color:var(--ink-3);margin-left:4px}
+.panel-top p{color:var(--ink-2);font-size:1.05rem;flex-basis:100%}
+.recipes{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.recipe{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--mint)}
+.recipe b{font-weight:600}
+.recipe .cost{font:800 1.05rem/1 var(--font-display);color:var(--green)}
+.recipe .prot{font-size:.82rem;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.floor{margin-top:20px;display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;background:var(--citrus-soft);color:#4E3A00;font-size:.93rem}
+.floor svg{flex:none;width:22px;height:22px;color:#9A6B00;margin-top:1px}
+@media (min-width:960px){.panel{grid-template-columns:1fr 1.15fr;padding:36px;gap:40px;align-items:start}}
+@media (max-width:520px){.recipe{grid-template-columns:1fr auto}.recipe .prot{grid-column:1}}
+
+/* Modes */
+.modes{display:grid;gap:22px}
+.mode{border-radius:28px;padding:30px 26px;display:grid;gap:18px;align-content:start}
+.mode h3{font-size:1.55rem}
+.mode-title{display:flex;align-items:center;gap:14px}
+.mode p{color:var(--ink-2)}
+.mode-frigo{background:var(--mint)}
+.mode .ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center}
+.mode .ico svg{width:28px;height:28px}
+.mode-frigo .ico{background:var(--white);color:var(--green)}
+.bubble-demo{display:grid;gap:8px}
+.bubble-demo .msg{opacity:1;transform:none;max-width:92%;font-size:.9rem}
+.bubble-demo .msg.me{justify-self:end}
+.bubble-demo .msg.bot{justify-self:start}
+@media (min-width:900px){.mode{padding:40px}.mode-frigo{grid-template-columns:1fr 1fr;column-gap:48px;align-items:center}.mode-frigo .bubble-demo{grid-column:2;grid-row:1 / span 2}}
+
+/* Premium : Mode Coach */
+.nav-links .nav-prem{display:inline-flex;align-items:center;gap:7px;color:var(--ink)}
+.nav-prem span{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:linear-gradient(135deg,#FFD866,#F2A93B);color:#3D2A00}
+.prem-teaser{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:20px;padding:8px 16px 8px 8px;border-radius:999px;background:linear-gradient(135deg,#FFF6DA,#FFE9B8);box-shadow:inset 0 0 0 1.5px #F4C55A;color:#4A3300;text-decoration:none;font-weight:600;font-size:.94rem;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.prem-teaser:hover{color:#4A3300;transform:translateY(-1px);box-shadow:inset 0 0 0 1.5px #E9A93A,0 8px 18px rgba(233,169,58,.25)}
+.prem-teaser .b{font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:99px;background:linear-gradient(135deg,#FFD866,#F2A93B);color:#3D2A00}
+.prem-teaser svg{width:18px;height:18px;transition:transform .25s var(--ease)}
+.prem-teaser:hover svg{transform:translateX(3px)}
+
+.coach-sec{position:relative;overflow:hidden;overflow:clip;background:linear-gradient(180deg,#FFFBEF 0%,#FFF1CC 100%)}
+.coach-sec::before{content:"";position:absolute;left:50%;top:-260px;width:900px;height:520px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(255,200,61,.45),transparent);pointer-events:none}
+.coach{position:relative;border-radius:36px;padding:3px;background:linear-gradient(135deg,#FFD866 0%,#F2A93B 55%,#E9853A 100%);box-shadow:0 20px 60px rgba(233,150,40,.28),0 4px 14px rgba(120,70,0,.10)}
+.coach-in{border-radius:33px;background:var(--white);overflow:hidden}
+.coach-head{position:relative;overflow:hidden;padding:40px 26px 34px;background:linear-gradient(135deg,#FFF8E2 0%,#FFE7C2 100%);border-bottom:1px solid #F6D9A0}
+.coach-head::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-18deg);animation:shine 1.6s var(--ease) .6s 1 both}
+@keyframes shine{from{left:-40%}to{left:130%}}
+.coach-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.badge-prem{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;background:linear-gradient(135deg,#FFD866,#F2A93B);color:#3D2A00;font:800 .8rem/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 12px rgba(242,169,59,.35)}
+.badge-trial{display:inline-flex;align-items:center;padding:7px 14px;border-radius:99px;background:var(--white);color:var(--green-deep);font:700 .82rem/1 var(--font-body);box-shadow:inset 0 0 0 1.5px var(--green-soft)}
+.coach-head .kicker{display:flex;align-items:center;gap:12px;font:800 clamp(1.1rem,2.4vw,1.3rem)/1 var(--font-display);color:#8A5200;margin-bottom:10px}
+.coach-head .kicker svg{width:30px;height:30px;padding:5px;border-radius:10px;background:var(--white);color:#C77A12;box-shadow:var(--shadow-sm)}
+.coach-head h2{max-width:16ch}
+.coach-head h2 .u{background:linear-gradient(transparent 62%,#FFD866 62%,#FFD866 92%,transparent 92%)}
+.coach-head p{margin-top:16px;max-width:36em;font-size:1.1rem;color:var(--ink-2)}
+.coach-body{display:grid;gap:26px;padding:28px 22px}
+.ex{border-radius:24px;background:var(--mint);padding:22px;align-self:start}
+.nw{white-space:nowrap}
+.ex-lab{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--green-deep)}
+.ex .chips{margin-top:10px}
+.ex .chip{background:var(--white)}
+.ex .chip.on{background:var(--green)}
+.ex-out{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.ex-out div{background:var(--white);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm)}
+.ex-out b{display:block;font:800 clamp(1.2rem,5.4vw,1.5rem)/1.05 var(--font-display);letter-spacing:-.02em;white-space:nowrap}
+.ex-out span{font-size:.84rem;color:var(--ink-3)}
+.podium-t{margin-top:22px;font-size:1.05rem}
+.podium{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.podium li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 14px;border-radius:14px;background:var(--white)}
+.podium .rk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:800 .9rem/1 var(--font-display);color:#3D2A00}
+.podium li:nth-child(1) .rk{background:linear-gradient(135deg,#FFD866,#F2A93B)}
+.podium li:nth-child(2) .rk{background:#E6ECE8}
+.podium li:nth-child(3) .rk{background:#F4D2B0}
+.podium .c{font:800 1.05rem/1 var(--font-display);color:var(--green)}
+.ex .src{margin-top:10px;font-size:.76rem;color:var(--ink-3)}
+.c-feats{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.c-feats li{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:18px;background:#FFFAEC;box-shadow:inset 0 0 0 1px #F6E2B4}
+.c-feats .i{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--white);font-size:1.25rem;box-shadow:var(--shadow-sm)}
+.c-feats b{display:block;font:700 1.02rem/1.25 var(--font-display)}
+.c-feats span{font-size:.9rem;color:var(--ink-2)}
+.soon{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:99px;background:var(--mint);color:var(--green-deep);font:700 .7rem/1.4 var(--font-body);vertical-align:2px}
+.compare{width:100%;margin-top:18px;border-collapse:collapse;font-size:.92rem}
+.compare th{font:800 .8rem/1 var(--font-body);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);padding:0 8px 10px;text-align:center}
+.compare th:first-child{text-align:left;padding-left:0}
+.compare th.pc{color:#8A5200}
+.compare td{padding:10px 8px;border-top:1px solid var(--line);text-align:center;color:var(--ink-3)}
+.compare td:first-child{text-align:left;padding-left:0;color:var(--ink)}
+.compare td.y svg{width:20px;height:20px;margin:0 auto;color:var(--green)}
+.compare td.pc{background:#FFF8E2}
+.compare td.pc svg{color:#C77A12}
+.coach-price{display:grid;gap:16px;justify-items:start;padding:26px 22px 30px;border-top:1px solid #F6E2B4;background:linear-gradient(180deg,#FFFDF6,#FFF6DD)}
+.coach-price .pr b{font:800 clamp(2.6rem,7vw,3.4rem)/1 var(--font-display);letter-spacing:-.04em}
+.coach-price .pr em{font-style:normal;font-weight:700;font-size:1.1rem;margin-left:6px}
+.coach-price .pr > span{display:block;margin-top:6px;color:var(--ink-2)}
+.btn-gold{min-height:60px;padding:0 30px;font-size:1.1rem;background:linear-gradient(135deg,#FFD866 0%,#F2A93B 100%);color:#2E2000;box-shadow:0 10px 26px rgba(233,150,40,.38)}
+.btn-gold:hover{color:#2E2000;transform:translateY(-1px);box-shadow:0 14px 30px rgba(233,150,40,.45);filter:saturate(1.08)}
+.btn-gold:active{transform:translateY(1px)}
+.btn-gold:hover svg{transform:translateX(3px)}
+.coach-price .fine{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.86rem;color:var(--ink-3);list-style:none;margin:0;padding:0}
+.coach-price .fine li{display:inline-flex;align-items:center;gap:6px}
+.coach-price .fine svg{width:16px;height:16px;color:var(--green)}
+@media (max-width:520px){
+  .prem-teaser{border-radius:18px;padding:10px 14px}
+  .coach-head{padding:30px 20px 26px}
+  .coach-body{padding:20px 12px}
+  .ex{padding:16px 14px}
+  .ex-out div{padding:12px}
+  .podium li{gap:10px;padding:10px 12px;font-size:.95rem}
+  .c-feats li{padding:12px}
+  .coach-price{padding:22px 16px 26px}
+  .coach-price .btn-gold{width:100%;font-size:1.02rem;padding:0 20px}
+}
+@media (min-width:960px){
+  .coach-head{padding:56px 56px 44px}
+  .coach-body{grid-template-columns:1fr 1.1fr;gap:40px;padding:44px 56px}
+  .coach-price{grid-template-columns:1fr auto;align-items:center;padding:34px 56px 38px}
+  .coach-price .fine{grid-column:1 / -1}
+}
+
+/* Trust */
+.trust{display:grid;gap:12px 28px;list-style:none;margin:0;padding:0}
+.trust li{display:grid;gap:10px;padding:22px 0;border-top:1px solid var(--line)}
+.trust .t{display:flex;align-items:center;gap:14px}
+.trust .ico{flex:none;width:42px;height:42px;border-radius:14px;background:var(--green-soft);color:var(--green);display:grid;place-items:center}
+.trust .ico svg{width:24px;height:24px}
+.trust h3{font-size:1.12rem}
+.trust p{color:var(--ink-2);font-size:.97rem;padding-left:56px}
+@media (min-width:860px){.trust{grid-template-columns:1fr 1fr}}
+
+/* FAQ */
+.faq{max-width:820px}
+.faq details{border-top:1px solid var(--line)}
+.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 4px;font:700 1.12rem/1.35 var(--font-display);letter-spacing:-.01em}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .pm{flex:none;width:34px;height:34px;border-radius:50%;background:var(--mint);display:grid;place-items:center;transition:transform .3s var(--ease),background-color .2s}
+.faq summary .pm svg{width:18px;height:18px;color:var(--green)}
+.faq summary:hover .pm{background:var(--green-soft)}
+.faq details[open] .pm{transform:rotate(45deg)}
+.faq details p{padding:0 4px 24px;color:var(--ink-2);max-width:62ch}
+
+/* Final CTA */
+.final{padding:0 0 88px}
+.final-box{position:relative;overflow:hidden;border-radius:36px;background:var(--green-deep);color:var(--white);padding:56px 28px;display:grid;gap:26px;justify-items:start}
+.final-box::after{content:"";position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.08),transparent)}
+.final-box h2{color:var(--white);max-width:14ch}
+.final-box p{color:#D5E3DA;font-size:1.12rem;max-width:36em}
+.final-box .btn-primary{background:var(--citrus);color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.final-box .btn-primary:hover{background:#FFD566;color:var(--ink)}
+.final-box :focus-visible{outline-color:var(--citrus)}
+@media (min-width:900px){.final-box{padding:80px 72px}}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--line);padding:40px 0 calc(40px + env(safe-area-inset-bottom));color:var(--ink-3);font-size:.9rem}
+.foot{display:grid;gap:18px}
+.foot .logo{font-size:1.25rem}
+.foot .logo svg{width:28px;height:28px}
+.foot p{max-width:70ch}
+.foot p+p{margin-top:10px}
+@media (min-width:860px){.foot{grid-template-columns:auto 1fr;gap:60px;align-items:start}}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .msg{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12 2-12 2z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 16.5v.5"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5a7.5 7.5 0 0 1-11 6.6L4 20.5l1.4-4.6A7.5 7.5 0 1 1 20 12.5Z"/><path d="M9 12h.01M12.5 12h.01M16 12h.01"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 2.8C19.5 15.4 12 20 12 20Z"/></symbol>
+    <symbol id="i-steth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v5a4 4 0 0 0 8 0V3"/><path d="M10 12v2a5 5 0 0 0 10 0v-1"/><circle cx="20" cy="11" r="2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+    <symbol id="i-fridge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M5 10h14M9 6v1.5M9 13.5v3"/></symbol>
+    <symbol id="i-dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7v10M4 9v6M17 7v10M20 9v6M7 12h10"/></symbol>
+    <symbol id="i-free" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/></symbol>
+    <symbol id="mark" viewBox="0 0 40 40"><rect width="40" height="40" rx="12" fill="#187A48"/><rect x="8" y="11" width="24" height="18" rx="4.5" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M19 11v18M19 20h13" stroke="#fff" stroke-width="2.6"/><path d="M10.6 22.2h6.4v4.2h-6.4z" fill="#FFC83D"/></symbol>
+  </defs>
+</svg>
+
+<header class="site-header" id="top">
+  <div class="wrap nav">
+    <a class="logo" href="#top" aria-label="Gamelle, retour en haut"><svg aria-hidden="true"><use href="#mark"/></svg>Gamelle</a>
+    <ul class="nav-links">
+      <li><a href="#comment">Comment ça marche</a></li>
+      <li><a href="#exemple">Exemple</a></li>
+      <li><a href="#budgets">Budgets</a></li>
+      <li><a class="nav-prem" href="#coach">Mode Coach <span>Premium</span></a></li>
+      <li><a href="#faq">Questions</a></li>
+    </ul>
+    <a class="btn btn-primary btn-small js-chat" href="https://gamelle-1ee271.zapier.app" target="_blank" rel="noopener">Parler à Gamelle</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Mange équilibré avec ton <span class="hl">budget étudiant</span>.</h1>
+        <p class="lede">Gamelle est ton coach nutrition IA. Quatre questions, et tu repars avec ta semaine de repas, ta liste de courses et son coût estimé.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary js-chat" href="https://gamelle-1ee271.zapier.app" target="_blank" rel="noopener">Préparer ma semaine <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-ghost" href="#exemple">Voir un exemple</a>
+        </div>
+        <ul class="reassure">
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg>Gratuit</li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg>Sans compte</li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg>À partir de 25 € la semaine</li>
+        </ul>
+        <a class="prem-teaser" href="#coach"><span class="b">✦ Premium</span>Tu t'entraînes&nbsp;? Découvre le Mode Coach <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+
+      <div class="stage" aria-label="Exemple de conversation avec Gamelle">
+        <svg class="food food-carrot" viewBox="0 0 90 90" aria-hidden="true"><path d="M58 22c4-10 12-15 20-14-2 7-7 12-14 15 9-1 16 3 19 10-9 2-16 0-21-5" fill="#3E9A5C"/><path d="M60 26 14 80c-3 3-8-1-6-5L48 18c4-5 15 2 12 8Z" fill="#F2803A"/><path d="M30 46l7 5M22 58l6 4M40 34l6 4" stroke="#D96A26" stroke-width="2.4" stroke-linecap="round"/></svg>
+
+        <div class="tag tag-price"><span class="ic"><svg aria-hidden="true"><use href="#i-tag"/></svg></span><span><b class="num">35,65 €</b>la semaine, prix sourcés</span></div>
+        <div class="tag tag-prot"><span class="ic"><svg aria-hidden="true"><use href="#i-bolt"/></svg></span><span><b class="num">112–128 g</b>de protéines par jour</span></div>
+
+        <div class="phone">
+          <div class="screen">
+            <div class="notch"></div>
+            <div class="chat-top">
+              <svg class="av" aria-hidden="true"><use href="#mark"/></svg>
+              <div><b>Gamelle</b><span>Assistant IA · coach nutrition</span></div>
+            </div>
+            <div class="chat-body" id="chat" aria-live="off">
+              <div class="msg bot">Salut, moi c'est Gamelle. Je suis une IA, pas un humain. Combien veux-tu dépenser pour manger cette semaine&nbsp;?</div>
+              <div class="msg me">Standard · 35 à 45 €</div>
+              <div class="msg bot">Top. Quel est ton objectif&nbsp;?</div>
+              <div class="msg me">Prise de masse</div>
+              <div class="msg bot"><strong>Ta semaine est prête.</strong>
+                <div class="row"><em>Protéines / jour</em><span class="num">112 à 128 g</span></div>
+                <div class="row"><em>Repas</em><span>7 jours, midi et soir</span></div>
+                <div class="row"><em>Coût estimé</em><strong class="num">35,65 €</strong></div>
+                <span class="src">Source : Carrefour en ligne, relevé du 13 nov. 2026</span>
+              </div>
+            </div>
+            <div class="chat-input">Écris ta réponse ici… <svg aria-hidden="true"><use href="#i-send"/></svg></div>
+          </div>
+        </div>
+        <p class="stage-note">Échange abrégé de nos tests du 13 novembre 2026</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-mint" id="comment">
+    <div class="wrap how">
+      <div class="section-head">
+        <h2>Quatre questions. Une semaine entière.</h2>
+        <p>Gamelle pose une question à la fois. Tu touches une réponse ou tu l'écris avec tes mots.</p>
+      </div>
+      <div>
+        <ol class="steps">
+          <li class="step"><span class="step-n">1</span><h3>Ton budget de la semaine</h3>
+            <div class="chips"><span class="chip">Serré · 25 à 30 €</span><span class="chip on">Standard · 35 à 45 €</span><span class="chip">Confort · 50 € et +</span><span class="chip">Je ne sais pas</span></div></li>
+          <li class="step"><span class="step-n">2</span><h3>Ton objectif</h3>
+            <div class="chips"><span class="chip">Mieux manger</span><span class="chip on">Prise de masse</span><span class="chip">Perte de poids</span></div></li>
+          <li class="step"><span class="step-n">3</span><h3>Ton régime</h3>
+            <div class="chips"><span class="chip on">Aucun</span><span class="chip">Végétarien</span><span class="chip">Végan</span><span class="chip">Halal</span><span class="chip">Casher</span></div></li>
+          <li class="step"><span class="step-n">4</span><h3>Ta cuisine</h3>
+            <div class="chips"><span class="chip on">Plaque</span><span class="chip">Four</span><span class="chip">Micro-ondes</span><span class="chip">Pas de cuisson</span></div></li>
+        </ol>
+        <div class="result">
+          <h3>Et tu repars avec&nbsp;:</h3>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>7 jours de repas</b>, midi et soir toujours différents, avec des recettes rapides.</span></li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Ta liste de courses</b>, rangée par rayon.</span></li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Le coût estimé</b>, avec la source et la date des prix.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="exemple">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>À quoi ressemble ta semaine</h2>
+        <p>Un exemple pour le palier Standard, avec une plaque et un four. Ta semaine à toi dépend de tes réponses.</p>
+      </div>
+      <div class="week">
+        <article class="week-card">
+          <div class="week-head">
+            <h3>Semaine type · Standard</h3>
+            <div class="pills"><span class="pill">Aucun régime</span><span class="pill">Plaque + four</span><span class="pill c">Petit-déj : porridge banane</span></div>
+          </div>
+          <ol class="days">
+            <li class="day"><span class="day-name">Lun</span><p class="meal"><span class="lb">Midi</span><span class="d">Curry de pois chiches aux œufs</span></p><p class="meal"><span class="lb">Soir</span><span class="d">Pâtes crémeuses épinards et œuf</span></p></li>
+            <li class="day"><span class="day-name">Mar</span><p class="meal"><span class="lb">Midi</span><span class="d">Gratin de pâtes au thon et épinards</span></p><p class="meal"><span class="lb">Soir</span><span class="d">Dahl de lentilles aux carottes</span></p></li>
+            <li class="day"><span class="day-name">Mer</span><p class="meal"><span class="lb">Midi</span><span class="d">Shakshuka express</span></p><p class="meal"><span class="lb">Soir</span><span class="d">Curry de pois chiches&nbsp;<i>(2e portion)</i></span></p></li>
+            <li class="day"><span class="day-name">Jeu</span><p class="meal"><span class="lb">Midi</span><span class="d">Gratin de pâtes au thon&nbsp;<i>(2e portion)</i></span></p><p class="meal"><span class="lb">Soir</span><span class="d">Bowl tofu, sauce cacahuète</span></p></li>
+            <li class="day"><span class="day-name">Ven</span><p class="meal"><span class="lb">Midi</span><span class="d">Dahl de lentilles&nbsp;<i>(2e portion)</i></span></p><p class="meal"><span class="lb">Soir</span><span class="d">Rillettes de sardines, pommes de terre</span></p></li>
+            <li class="day"><span class="day-name">Sam</span><p class="meal"><span class="lb">Midi</span><span class="d">Pâtes crémeuses&nbsp;<i>(2e portion)</i></span></p><p class="meal"><span class="lb">Soir</span><span class="d">Shakshuka&nbsp;<i>(2e portion)</i></span></p></li>
+            <li class="day"><span class="day-name">Dim</span><p class="meal"><span class="lb">Midi</span><span class="d">Bowl tofu&nbsp;<i>(2e portion)</i></span></p><p class="meal"><span class="lb">Soir</span><span class="d">Haricots rouges à la tomate sur pain complet</span></p></li>
+          </ol>
+          <p class="week-foot">Chaque plat associe un féculent, une protéine et au moins un légume (repères PNNS). Exemple composé à partir de la banque de recettes Gamelle.</p>
+        </article>
+
+        <aside class="list-card" aria-label="Extrait de liste de courses">
+          <h3>Extrait de la liste de courses</h3>
+          <p>Les produits les moins chers du rayon, au prix relevé.</p>
+          <ul class="items">
+            <li><span>Œufs frais ×10<small>SIMPL</small></span><span class="price num">1,85 €</span></li>
+            <li><span>Lentilles vertes 500 g<small>Carrefour Classic'</small></span><span class="price num">1,55 €</span></li>
+            <li><span>Riz long blanc 1 kg<small>SIMPL</small></span><span class="price num">1,19 €</span></li>
+            <li><span>Penne rigate 1 kg<small>Carrefour</small></span><span class="price num">1,09 €</span></li>
+          </ul>
+          <div class="basket"><b class="num">32 à 38 €</b><span>le panier de base équilibré pour une semaine, selon l'enseigne</span></div>
+          <p class="src">Prix des produits : Carrefour en ligne, relevé du 13 nov. 2026. Même panier de base&nbsp;: 32,30 € chez Carrefour (en ligne), 37,39 € chez Auchan et 38,26 € chez Intermarché (Lyon 7e), relevés du 13 nov. 2026. Prix indicatifs, variables selon le magasin et les promos.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-mint" id="budgets">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Ton budget d'abord. Le menu ensuite.</h2>
+        <p>Tu ne connais pas ton budget&nbsp;? Choisis un palier, Gamelle s'adapte.</p>
+      </div>
+      <div class="tiers">
+        <div class="tabs" role="tablist" aria-label="Paliers de budget">
+          <button class="tab" role="tab" id="t-serre" aria-controls="p-serre" aria-selected="false" tabindex="-1">Serré<small>25 à 30 €</small></button>
+          <button class="tab" role="tab" id="t-standard" aria-controls="p-standard" aria-selected="true">Standard<small>35 à 45 €</small></button>
+          <button class="tab" role="tab" id="t-confort" aria-controls="p-confort" aria-selected="false" tabindex="-1">Confort<small>50 € et +</small></button>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-serre" aria-labelledby="t-serre" hidden>
+          <div>
+            <svg class="panel-art" viewBox="2 22 92 66" aria-hidden="true"><ellipse cx="48" cy="44" rx="38" ry="10" fill="#C9772F"/><circle cx="34" cy="42" r="3" fill="#E08A3C"/><circle cx="46" cy="40" r="3" fill="#E08A3C"/><circle cx="58" cy="43" r="3" fill="#E08A3C"/><circle cx="40" cy="46" r="2.6" fill="#A85F22"/><circle cx="62" cy="39" r="2.6" fill="#A85F22"/><path d="M8 44h80c0 22-18 38-40 38S8 66 8 44Z" fill="#187A48"/><path d="M8 44h80" stroke="#0E4A2C" stroke-width="2"/><path d="M20 56c4 10 12 16 22 18" stroke="#fff" stroke-opacity=".35" stroke-width="4" stroke-linecap="round" fill="none"/></svg><div class="panel-top"><span class="amount num">25–30 €<small>/ semaine</small></span><p>Équilibré mais simple&nbsp;: légumineuses, œufs, féculents, surgelés.</p></div>
+            <div class="floor"><svg aria-hidden="true"><use href="#i-alert"/></svg><span>Moins de 25 €&nbsp;? Gamelle te dit honnêtement qu'une semaine équilibrée n'est pas garantie, fait le meilleur plan possible et t'oriente vers les aides (restos U du Crous, épiceries solidaires AGORAé).</span></div>
+          </div>
+          <ul class="recipes">
+            <li class="recipe"><b>Soupe de légumes aux lentilles</b><span class="prot">≈ 16 g protéines</span><span class="cost num">0,55 €</span></li>
+            <li class="recipe"><b>Dahl de lentilles aux carottes</b><span class="prot">≈ 25 g protéines</span><span class="cost num">0,64 €</span></li>
+            <li class="recipe"><b>Pâtes crémeuses épinards et œuf</b><span class="prot">≈ 28 g protéines</span><span class="cost num">0,66 €</span></li>
+          </ul>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-standard" aria-labelledby="t-standard">
+          <div>
+            <svg class="panel-art" viewBox="0 0 96 96" aria-hidden="true"><path d="M50 12c18 0 34 10 34 26 0 10-6 14-6 22 0 16-14 26-32 26S12 76 12 60c0-12 8-16 8-28C20 18 34 12 50 12Z" fill="#FFFFFF" stroke="#DCE7E0" stroke-width="2"/><circle cx="48" cy="50" r="17" fill="#FFC83D"/><circle cx="42" cy="44" r="5" fill="#FFE29A"/></svg><div class="panel-top"><span class="amount num">35–45 €<small>/ semaine</small></span><p>Plus de variété, plus de fruits et légumes frais.</p></div>
+          </div>
+          <ul class="recipes">
+            <li class="recipe"><b>Curry de pois chiches aux œufs</b><span class="prot">≈ 29 g protéines</span><span class="cost num">1,03 €</span></li>
+            <li class="recipe"><b>Bowl tofu, sauce cacahuète</b><span class="prot">≈ 25 g protéines</span><span class="cost num">1,17 €</span></li>
+            <li class="recipe"><b>Gratin de pâtes au thon et épinards</b><span class="prot">≈ 48 g protéines</span><span class="cost num">1,22 €</span></li>
+          </ul>
+        </div>
+
+        <div class="panel" role="tabpanel" id="p-confort" aria-labelledby="t-confort" hidden>
+          <div>
+            <svg class="panel-art" viewBox="0 0 96 96" aria-hidden="true"><path d="M60 40 78 58" stroke="#F4EBDD" stroke-width="10" stroke-linecap="round"/><circle cx="82" cy="58" r="7" fill="#F4EBDD"/><circle cx="76" cy="66" r="7" fill="#F4EBDD"/><path d="M14 40c0-16 14-28 30-28 18 0 28 12 26 26-2 12-14 20-26 22-6 1-10 4-14 8-10 0-16-12-16-28Z" fill="#C2662B"/><path d="M26 26c6-6 14-8 22-6" stroke="#E08A4A" stroke-width="5" stroke-linecap="round" fill="none"/></svg><div class="panel-top"><span class="amount num">50 €+<small>/ semaine</small></span><p>Plus de viande, de poisson et de produits frais.</p></div>
+          </div>
+          <ul class="recipes">
+            <li class="recipe"><b>Riz sauté au poulet et à l'œuf</b><span class="prot">≈ 38 g protéines</span><span class="cost num">1,79 €</span></li>
+            <li class="recipe"><b>Poulet mariné au yaourt, semoule</b><span class="prot">≈ 48 g protéines</span><span class="cost num">2,05 €</span></li>
+            <li class="recipe"><b>Chili con carne</b><span class="prot">≈ 38 g protéines</span><span class="cost num">2,53 €</span></li>
+          </ul>
+        </div>
+        <p class="note">Coût par portion, calculé à partir du relevé Carrefour du 13 nov. 2026. Protéines&nbsp;: valeurs indicatives proches de la table Ciqual (ANSES).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="modes">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Ton frigo n'est pas vide&nbsp;? Commence par là.</h2>
+      </div>
+      <div class="modes">
+        <article class="mode mode-frigo">
+          <div class="mode-title"><span class="ico"><svg aria-hidden="true"><use href="#i-fridge"/></svg></span><h3>Mode Frigo</h3></div>
+          <p>Dis ce que tu as déjà. Gamelle cuisine avec, puis complète avec une petite liste de courses. Moins de gaspillage, moins de dépenses. Gratuit, comme tout le reste.</p>
+          <div class="bubble-demo">
+            <div class="msg me">J'ai 3 œufs, du riz et une boîte de thon</div>
+            <div class="msg bot">Parfait. Je les utilise en premier et je ne te fais acheter que ce qui manque.</div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section coach-sec" id="coach">
+    <div class="wrap">
+      <div class="coach">
+        <div class="coach-in">
+          <div class="coach-head">
+            <div class="coach-badges"><span class="badge-prem">✦ Premium</span><span class="badge-trial">7 jours offerts</span></div>
+            <p class="kicker"><svg aria-hidden="true"><use href="#i-dumbbell"/></svg>Mode Coach</p>
+            <h2>Tu t'entraînes&nbsp;? <span class="u">Ton assiette aussi.</span></h2>
+            <p>Pour la prise de masse ou la sèche&nbsp;: ta semaine se cale sur tes séances, avec la bonne dose de protéines. Toujours avec ton budget.</p>
+          </div>
+
+          <div class="coach-body">
+            <div class="ex">
+              <span class="ex-lab">Exemple réel · test du 13 nov. 2026</span>
+              <div class="chips"><span class="chip">70 à 80 kg</span><span class="chip on">Prise de masse</span><span class="chip">Standard · 35 à 45 €</span></div>
+              <div class="ex-out">
+                <div><b class="num">112–128 g</b><span>de protéines par jour</span></div>
+                <div><b class="num">35,65 €</b><span>la semaine complète</span></div>
+              </div>
+              <h3 class="podium-t">Top protéines par euro</h3>
+              <ol class="podium">
+                <li><span class="rk">1</span><span>Lentilles vertes</span><span class="c num">0,26 €</span></li>
+                <li><span class="rk">2</span><span>Lait demi-écrémé</span><span class="c num">0,45 €</span></li>
+                <li><span class="rk">3</span><span>Fromage blanc 0&nbsp;%</span><span class="c num">0,48 €</span></li>
+              </ol>
+              <p class="src">Coût pour 20 g de protéines. Carrefour en ligne, relevé du 13 nov. 2026.</p>
+            </div>
+
+            <div>
+              <ul class="c-feats">
+                <li><span class="i" aria-hidden="true">🏋️</span><div><b>Repas calés sur tes séances</b><span>Une fourchette de protéines par jour, adaptée à ton poids (facultatif, en tranches).</span></div></li>
+                <li><span class="i" aria-hidden="true">📊</span><div><b>Bilan du dimanche</b><span>Ton ressenti d'abord, le poids en dernier et facultatif. Version 30 secondes si tu es pressé.</span></div></li>
+                <li><span class="i" aria-hidden="true">🍱</span><div><b>Batch cooking du dimanche</b><span>Un plan pour cuisiner ta semaine en une fois.</span></div></li>
+                <li><span class="i" aria-hidden="true">🏷️</span><div><b>Codes promo sport <span class="soon">bientôt</span></b><span>Avec de futurs partenaires (salles, marques), toujours signalés.</span></div></li>
+              </ul>
+              <table class="compare">
+                <thead><tr><th scope="col">Ce que tu as</th><th scope="col">Gratuit</th><th scope="col" class="pc">Coach</th></tr></thead>
+                <tbody>
+                  <tr><td>Semaine équilibrée et liste de courses</td><td class="y"><svg aria-label="oui"><use href="#i-check"/></svg></td><td class="y pc"><svg aria-label="oui"><use href="#i-check"/></svg></td></tr>
+                  <tr><td>Coût estimé avec sa source</td><td class="y"><svg aria-label="oui"><use href="#i-check"/></svg></td><td class="y pc"><svg aria-label="oui"><use href="#i-check"/></svg></td></tr>
+                  <tr><td>Mode Frigo</td><td class="y"><svg aria-label="oui"><use href="#i-check"/></svg></td><td class="y pc"><svg aria-label="oui"><use href="#i-check"/></svg></td></tr>
+                  <tr><td>Repas calés sur tes séances</td><td>–</td><td class="y pc"><svg aria-label="oui"><use href="#i-check"/></svg></td></tr>
+                  <tr><td>Classement protéines par euro</td><td>–</td><td class="y pc"><svg aria-label="oui"><use href="#i-check"/></svg></td></tr>
+                  <tr><td>Bilan et batch cooking du dimanche</td><td>–</td><td class="y pc"><svg aria-label="oui"><use href="#i-check"/></svg></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="coach-price">
+            <div class="pr"><b class="num">0 €</b><em>pendant 7 jours</em><span>puis <b class="num" style="font:inherit;font-weight:700">2,99 €/mois</b>, soit moins de 10 centimes par jour. Ou <span class="nw">24,99 €/an</span>, soit <span class="nw">2,08 €/mois</span>.</span></div>
+            <a class="btn btn-gold js-chat" href="https://gamelle-1ee271.zapier.app" target="_blank" rel="noopener">✨ Essayer 7 jours gratuits <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <ul class="fine">
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Rappel avant la fin de l'essai</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Aucun prélèvement surprise</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>La version gratuite reste complète</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-mint" id="engagements">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Honnête, même quand ça coince</h2>
+        <p>Un coach qui te dit la vérité vaut mieux qu'un coach qui te flatte.</p>
+      </div>
+      <ul class="trust">
+        <li><div class="t"><span class="ico"><svg aria-hidden="true"><use href="#i-receipt"/></svg></span><h3>Chaque prix a sa source</h3></div><p>Gamelle cite l'enseigne et la date du relevé, et rappelle que les prix varient.</p></li>
+        <li><div class="t"><span class="ico"><svg aria-hidden="true"><use href="#i-alert"/></svg></span><h3>Sous 25 €, il te le dit</h3></div><p>Pas de promesse intenable&nbsp;: le meilleur plan possible, et les aides vers qui te tourner.</p></li>
+        <li><div class="t"><span class="ico"><svg aria-hidden="true"><use href="#i-chat"/></svg></span><h3>Une IA, et elle le dit</h3></div><p>Dès le premier message. Gamelle n'invente ni prix, ni recette, ni valeur nutritionnelle.</p></li>
+        <li><div class="t"><span class="ico"><svg aria-hidden="true"><use href="#i-heart"/></svg></span><h3>Zéro culpabilité</h3></div><p>Pas de régime extrême, pas de jugement sur ton corps ou tes choix. Une semaine ratée, ce n'est pas grave.</p></li>
+        <li><div class="t"><span class="ico"><svg aria-hidden="true"><use href="#i-steth"/></svg></span><h3>La santé, c'est un pro</h3></div><p>Grossesse, maladie, allergie, troubles alimentaires&nbsp;: Gamelle t'oriente vers un médecin ou un diététicien.</p></li>
+        <li><div class="t"><span class="ico"><svg aria-hidden="true"><use href="#i-lock"/></svg></span><h3>Rien à créer, rien à donner</h3></div><p>Pas de compte, pas d'e-mail. Le poids reste facultatif, en tranches.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <div class="section-head"><h2>Questions fréquentes</h2></div>
+      <div class="faq">
+        <details><summary>C'est vraiment gratuit&nbsp;?<span class="pm"><svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><p>Oui. La version gratuite est complète pour manger équilibré. Gamelle est financé par des partenaires (marques, salles de sport, enseignes) qui font baisser l'addition&nbsp;; chaque contenu de marque est signalé, et l'option la moins chère est toujours proposée à côté. Seul le Mode Coach, pour le sport, est payant.</p></details>
+        <details><summary>D'où viennent les prix&nbsp;?<span class="pm"><svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><p>D'un relevé de 32 produits sur Carrefour en ligne le 13 novembre 2026, comparé avec Auchan, Intermarché et Lidl. Gamelle donne toujours la source et la date. Les prix restent indicatifs&nbsp;: ils varient selon le magasin et les promotions.</p></details>
+        <details><summary>Gamelle remplace un diététicien&nbsp;?<span class="pm"><svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><p>Non. Gamelle est une IA qui t'aide à organiser des repas équilibrés avec ton budget. Pour toute question de santé, il t'oriente vers un médecin, un diététicien ou le service de santé universitaire.</p></details>
+        <details><summary>Je suis végan, halal ou casher&nbsp;: ça marche&nbsp;?<span class="pm"><svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><p>Oui. Indique ton régime et Gamelle l'applique, sans commentaire et sans te demander pourquoi.</p></details>
+        <details><summary>Et si je n'ai qu'un micro-ondes&nbsp;?<span class="pm"><svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><p>Gamelle ne propose que des recettes faisables avec ton équipement, et te signale chaque adaptation. Certaines recettes se font même sans aucune cuisson.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <div class="final-box">
+        <h2>Ta semaine commence ici.</h2>
+        <p>Donne ton budget à Gamelle. Il s'occupe des menus, de la liste de courses et du calcul.</p>
+        <a class="btn btn-primary js-chat" href="https://gamelle-1ee271.zapier.app" target="_blank" rel="noopener">Préparer ma semaine <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <a class="logo" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>Gamelle</a>
+    <div>
+      <p>Gamelle est une IA, pas un médecin ni un diététicien. Prix indicatifs relevés le 13 novembre 2026&nbsp;; recettes et repères nutritionnels proches de la table Ciqual (ANSES) et des repères PNNS.</p>
+      <p>Start-up fictive créée pour le challenge final IA de le Wagon × emlyon, novembre 2026.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // Header border on scroll
+  const header = document.querySelector('.site-header');
+  const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 8);
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  // Hero chat replay (once, when visible)
+  const chat = document.getElementById('chat');
+  const msgs = [...chat.querySelectorAll('.msg')];
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { msgs.forEach(m => m.classList.add('in')); }
+  else {
+    const typing = document.createElement('div');
+    typing.className = 'typing'; typing.setAttribute('aria-hidden','true');
+    typing.innerHTML = '<i></i><i></i><i></i>';
+    msgs[0].classList.add('in');
+    msgs.slice(1).forEach(m => m.style.display = 'none');
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const show = async (m) => {
+      if (m.classList.contains('bot')) {
+        chat.appendChild(typing); await wait(30); typing.classList.add('in');
+        await wait(m.querySelector('.row') ? 1300 : 800);
+        typing.classList.remove('in'); typing.remove();
+      } else { await wait(650); }
+      chat.appendChild(m); m.style.display = '';
+      requestAnimationFrame(() => requestAnimationFrame(() => m.classList.add('in')));
+      await wait(380);
+    };
+    const run = async () => { await wait(500); for (const m of msgs.slice(1)) await show(m); };
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) { io.disconnect(); run(); }
+    }, {threshold:.35});
+    io.observe(chat);
+  }
+
+  // Budget tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const select = (tab, focus) => {
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t));
+    t.addEventListener('keydown', (e) => {
+      const k = e.key; let n = null;
+      if (k === 'ArrowRight') n = tabs[(i + 1) % tabs.length];
+      if (k === 'ArrowLeft') n = tabs[(i - 1 + tabs.length) % tabs.length];
+      if (k === 'Home') n = tabs[0];
+      if (k === 'End') n = tabs[tabs.length - 1];
+      if (n) { e.preventDefault(); select(n, true); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
