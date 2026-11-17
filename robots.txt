@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://charlesrevol2008-boop.github.io/gamelle-site/sitemap.xml
