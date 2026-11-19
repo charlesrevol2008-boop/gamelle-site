@@ -1,0 +1,1871 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6FAF7">
+<title>Gamelle, coach nutrition IA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%23187A48'/%3E%3Crect x='146' y='166' width='220' height='180' rx='40' fill='none' stroke='%23fff' stroke-width='24'/%3E%3Cpath d='M246 166v180M246 256h120' stroke='%23fff' stroke-width='24'/%3E%3Crect x='170' y='268' width='64' height='66' rx='10' fill='%23FFC83D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@700;800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Identité Gamelle (DESIGN.md, 15 nov.) : vert Gamelle, citron, menthe. */
+  :root {
+    --ink: #12261C;
+    --ink-2: #3D5247;
+    --ink-3: #5E7166;
+    --green: #187A48;
+    --green-hover: #12643A;
+    --green-deep: #0E4A2C;
+    --green-soft: #D7EEDF;
+    --mint: #EFF7F1;
+    --screen: #F6FAF7;
+    --citrus: #FFC83D;
+    --citrus-soft: #FFF3D1;
+    --citrus-ink: #6B4A00;
+    --carrot: #F2803A;
+    --line: #DCE7E0;
+    --sage: #B9CCBF;
+    --white: #FFFFFF;
+    --display: "Gabarito", system-ui, sans-serif;
+    --body: "Figtree", system-ui, sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  /* La fenêtre ne défile jamais : seule la zone des messages défile. */
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: var(--screen);
+    color: var(--ink);
+    font: 16px/1.5 var(--body);
+    -webkit-font-smoothing: antialiased;
+    caret-color: var(--green);
+    scrollbar-color: var(--sage) transparent;
+  }
+  ::selection { background: var(--green-soft); color: var(--ink); }
+  :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; border-radius: 10px; }
+  [hidden] { display: none !important; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  svg { display: block; }
+
+  .app {
+    position: relative;
+    max-width: 640px;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--screen);
+  }
+
+  /* ---------- Barre du haut ---------- */
+  .bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; }
+  .brand { display: flex; flex-direction: column; line-height: 1.1; }
+  .wordmark { margin: 0; font: 800 22px/1 var(--display); letter-spacing: -0.02em; color: var(--green); }
+  .status { font-size: 13px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #2DB36B; }
+  .test-badge { font-size: 12px; font-weight: 700; color: var(--citrus-ink); background: var(--citrus-soft); padding: 4px 10px; border-radius: 999px; }
+  .restart {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 40px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--white);
+    font-size: 15px; font-weight: 600; color: var(--ink-2);
+  }
+  .restart:hover { background: var(--mint); }
+  @media (max-width: 420px) {
+    .restart { width: 40px; padding: 0; justify-content: center; }
+    .restart span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  }
+
+  /* ---------- Questions guidées ---------- */
+  .guide { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .guide-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 18px 16px 16px; }
+  .progress { display: flex; gap: 6px; margin-bottom: 18px; }
+  .progress i { flex: 1; height: 6px; border-radius: 999px; background: var(--line); transition: background-color 0.3s; }
+  .progress i.done { background: var(--green); }
+  .progress i.now { background: var(--citrus); }
+  .guide-top { display: flex; align-items: center; justify-content: space-between; min-height: 40px; margin-bottom: 6px; }
+  .step-count { font-size: 14px; font-weight: 700; color: var(--ink-3); }
+  .back {
+    display: inline-flex; align-items: center; gap: 4px;
+    min-height: 40px; padding: 0 10px 0 4px;
+    border: 0; border-radius: 999px; background: none;
+    font-size: 15px; font-weight: 600; color: var(--green-deep);
+  }
+  .back:hover { background: var(--mint); }
+  /* Bandeau du concept (question 1 seulement) : clair, sur carte blanche */
+  .hero {
+    margin: 0 0 22px;
+    padding: 22px 20px 18px;
+    border-radius: 28px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    box-shadow: 0 6px 24px rgba(18, 38, 28, 0.06);
+    color: var(--ink);
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin: 0 0 14px; padding: 4px 12px 4px 4px;
+    border-radius: 999px; background: var(--mint);
+    font-size: 14px; font-weight: 700; color: var(--green-deep);
+  }
+  .hero-eyebrow .avatar { width: 26px; height: 26px; border-radius: 50%; }
+  .hero-title {
+    margin: 0 0 12px;
+    font: 800 clamp(32px, 9.4vw, 46px)/1.04 var(--display);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .hero-title span { color: var(--green); text-decoration: underline; text-decoration-color: var(--citrus); text-decoration-thickness: 0.12em; text-underline-offset: 0.14em; text-decoration-skip-ink: none; }
+  .hero-lede { margin: 0 0 18px; font-size: clamp(16px, 4.4vw, 19px); line-height: 1.5; color: var(--ink-2); }
+  .hero-lede strong { color: var(--ink); }
+  .hero-steps {
+    list-style: none; margin: 0 0 14px; padding: 0;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  }
+  .hero-steps li {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px 10px;
+    border-radius: 16px;
+    background: var(--screen);
+    border: 1px solid var(--line);
+    font-size: 13px; line-height: 1.3; color: var(--ink-3);
+  }
+  .hero-steps li:nth-child(1) .hero-ico { background: var(--citrus-soft); }
+  .hero-steps li:nth-child(2) .hero-ico { background: var(--green-soft); }
+  .hero-steps li:nth-child(3) .hero-ico { background: #FDE6D6; }
+  .hero-steps strong { display: block; font-size: 15px; color: var(--ink); margin-bottom: 2px; }
+  .hero-ico {
+    width: 40px; height: 40px; display: grid; place-items: center;
+    border-radius: 12px; font-size: 22px; line-height: 1;
+  }
+  .hero-note { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink-3); }
+  @media (max-width: 380px) {
+    .hero { padding: 18px 16px 16px; }
+    .hero-steps { grid-template-columns: 1fr; }
+    .hero-steps li { flex-direction: row; align-items: center; padding: 8px 10px; }
+  }
+  .avatar { width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0; }
+  .question {
+    margin: 0 0 6px;
+    font: 800 clamp(26px, 7vw, 32px)/1.1 var(--display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .question:focus { outline: none; }
+  .hint { margin: 0 0 18px; font-size: 15px; color: var(--ink-3); }
+  .options { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .options.grid2 { grid-template-columns: 1fr 1fr; }
+  .option {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; min-height: 68px;
+    padding: 10px 14px 10px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
+    background: var(--white);
+    text-align: left;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  }
+  .option:hover { border-color: var(--sage); box-shadow: 0 2px 10px rgba(18, 38, 28, 0.06); }
+  .option:active { background: var(--mint); }
+  .option[aria-pressed="true"] { border-color: var(--green); background: var(--mint); box-shadow: 0 0 0 1px var(--green) inset; }
+  .tile {
+    width: 46px; height: 46px; flex-shrink: 0;
+    display: grid; place-items: center;
+    border-radius: 14px;
+    font-size: 24px; line-height: 1;
+    background: var(--mint);
+  }
+  .tile.citrus { background: var(--citrus-soft); }
+  .tile.carrot { background: #FDE6D6; }
+  .tile.green { background: var(--green-soft); }
+  .option-text { flex: 1; min-width: 0; }
+  .option-label { display: block; font-size: 17px; font-weight: 700; }
+  .option-detail { display: block; font-size: 14px; color: var(--ink-3); }
+  .option-aside {
+    font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums;
+    font-size: 14px; color: var(--green-deep);
+    background: var(--mint); padding: 4px 10px; border-radius: 999px;
+  }
+  .option.manual { border-style: dashed; }
+  .check {
+    width: 26px; height: 26px; flex-shrink: 0;
+    border: 2px solid var(--sage); border-radius: 8px;
+    display: grid; place-items: center; color: #fff;
+  }
+  .option[aria-pressed="true"] .check { background: var(--green); border-color: var(--green); }
+  .check svg { opacity: 0; }
+  .option[aria-pressed="true"] .check svg { opacity: 1; }
+
+  .amount { display: flex; gap: 8px; }
+  .amount-field {
+    flex: 1; display: flex; align-items: center;
+    min-height: 56px; padding: 0 16px;
+    border: 2px solid var(--green); border-radius: 18px; background: var(--white);
+  }
+  .amount-field input {
+    flex: 1; min-width: 0; border: 0; background: none; outline: none;
+    font: 700 20px var(--body); font-variant-numeric: tabular-nums; color: var(--ink);
+  }
+  .amount-field span { font-weight: 700; color: var(--ink-3); }
+  .amount-error { margin: 6px 0 0; font-size: 15px; color: #B42318; font-weight: 600; }
+
+  .guide-foot {
+    padding: 10px 16px 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--white);
+    display: flex; flex-direction: column; align-items: stretch; gap: 4px;
+  }
+  .primary {
+    min-height: 54px; border: 0; border-radius: 999px;
+    background: var(--green); color: #fff;
+    font-size: 17px; font-weight: 700;
+  }
+  .primary:hover { background: var(--green-hover); }
+  .primary:disabled { cursor: default; background: var(--line); color: var(--ink-3); }
+  .link {
+    min-height: 40px; border: 0; background: none;
+    font-size: 15px; font-weight: 600; color: var(--green-deep);
+    text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px;
+  }
+  .disclaimer { margin: 0; text-align: center; font-size: 13px; color: var(--ink-3); }
+
+  /* ---------- Conversation ---------- */
+  .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .messages {
+    position: relative;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px 16px 16px;
+  }
+  /* Chaque échange (ton message + la réponse) est un « tour ». Le dernier tour
+     occupe au moins toute la hauteur visible : on le place en haut une seule fois,
+     puis la réponse s'affiche dessous sans que rien ne bouge. */
+  .turn { display: flex; flex-direction: column; gap: 12px; padding-bottom: 14px; }
+  .turn.last { min-height: var(--turn-min, 0px); }
+
+  .user-row { display: flex; justify-content: flex-end; }
+  .msg-user {
+    max-width: 85%;
+    padding: 10px 15px;
+    border-radius: 18px 18px 6px 18px;
+    background: var(--green); color: #fff;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .msg-user ::selection { background: var(--ink); color: #fff; }
+  .recap {
+    max-width: 92%;
+    padding: 12px 14px;
+    border-radius: 18px 18px 6px 18px;
+    background: var(--green); color: #fff;
+  }
+  .recap-title { font-size: 13px; font-weight: 700; opacity: 0.85; margin-bottom: 8px; }
+  .recap-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .recap-tags span {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255, 255, 255, 0.16);
+    padding: 5px 10px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+  }
+
+  .bot-row { display: flex; gap: 8px; align-items: flex-start; }
+  .bot-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .bubble-bot {
+    align-self: flex-start;
+    max-width: 100%;
+    padding: 11px 15px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 6px 18px 18px 18px;
+    overflow-wrap: anywhere;
+  }
+  .bubble-bot p { margin: 0; }
+  .bubble-bot p + p, .bubble-bot p + ul, .bubble-bot ul + p { margin-top: 8px; }
+  .bubble-bot ul { margin: 4px 0 0; padding-left: 1.1em; }
+  .bubble-bot li + li { margin-top: 2px; }
+  .bubble-bot .sub { font-weight: 700; color: var(--green-deep); }
+  .source { font-size: 13px; color: var(--ink-3); }
+  .kicker { margin: 6px 2px -2px; font: 700 16px/1.3 var(--display); color: var(--green-deep); }
+
+  /* Cartes visuelles */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-head h3 { margin: 0; font: 800 18px/1.15 var(--display); letter-spacing: -0.01em; }
+  .card-head .meta { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--green-deep); background: var(--mint); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .card-head .tile { width: 36px; height: 36px; font-size: 19px; border-radius: 11px; }
+
+  /* Chiffres clés */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+  .stat {
+    border-radius: 20px; padding: 14px 16px;
+    background: var(--green); color: #fff;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .stat.alt { background: var(--citrus-soft); color: var(--ink); }
+  .stat-label { font-size: 13px; font-weight: 700; opacity: 0.9; }
+  .stat-value { white-space: nowrap; font: 800 clamp(21px, 6.4vw, 28px)/1.05 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .stat-note { font-size: 13px; opacity: 0.9; }
+  .stat.alt .stat-label, .stat.alt .stat-note { color: var(--citrus-ink); opacity: 1; }
+
+  /* Semaine */
+  .days { display: flex; flex-direction: column; }
+  .day { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 12px 14px; }
+  .day + .day { border-top: 1px solid var(--line); }
+  .day-tag {
+    align-self: start;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 44px; border-radius: 14px;
+    background: var(--mint); color: var(--green-deep);
+    font: 800 15px/1 var(--display);
+  }
+  .day:nth-child(6) .day-tag, .day:nth-child(7) .day-tag { background: var(--citrus-soft); color: var(--citrus-ink); }
+  .meals { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .meal { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; font-size: 15px; line-height: 1.4; }
+  .meal-ico { font-size: 16px; line-height: 1.3; text-align: center; }
+  .meal-kind { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .leftover { display: inline-block; margin-left: 4px; font-size: 12px; font-weight: 700; color: var(--citrus-ink); background: var(--citrus-soft); padding: 1px 7px; border-radius: 999px; vertical-align: 1px; }
+
+  /* Liste de courses */
+  .group { padding: 10px 14px 12px; }
+  .group + .group { border-top: 1px solid var(--line); }
+  .group-name { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; font-weight: 700; font-size: 15px; color: var(--green-deep); }
+  .group-name span:first-child { font-size: 18px; }
+  .items { display: flex; flex-direction: column; }
+  .item {
+    display: flex; align-items: flex-start; gap: 10px;
+    width: 100%; min-height: 40px;
+    padding: 8px 4px;
+    border: 0; border-radius: 10px; background: none;
+    text-align: left; font-size: 15px; line-height: 1.35;
+  }
+  .item:hover { background: var(--mint); }
+  .box {
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: -1px;
+    border: 2px solid var(--sage); border-radius: 7px;
+    display: grid; place-items: center; color: #fff;
+  }
+  .box svg { opacity: 0; }
+  .item[aria-checked="true"] .box { background: var(--green); border-color: var(--green); }
+  .item[aria-checked="true"] .box svg { opacity: 1; }
+  .item[aria-checked="true"] .item-text { color: var(--ink-3); text-decoration: line-through; }
+
+  .card-foot { padding: 10px 14px 12px; border-top: 1px solid var(--line); }
+  .card-foot p { margin: 0; font-size: 14px; color: var(--ink-2); }
+  .card-foot p + p { margin-top: 4px; }
+
+  /* ---------- Version 2 : visuels ---------- */
+  /* Jauge de budget */
+  .budget { grid-column: 1 / -1; background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px 12px; }
+  .budget-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .budget-label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .budget-value { display: block; font: 800 clamp(24px, 7vw, 30px)/1.05 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .budget-status { font-size: 13px; font-weight: 700; padding: 6px 11px; border-radius: 999px; white-space: nowrap; }
+  .budget-status.ok { background: var(--green-soft); color: var(--green-deep); }
+  .budget-status.over { background: #FDE6D6; color: #8A3A0B; }
+  .gauge { position: relative; height: 12px; margin: 4px 10px 10px; border-radius: 999px; background: var(--mint); box-shadow: inset 0 0 0 1px var(--line); }
+  .gauge-band { position: absolute; top: -4px; bottom: -4px; border-radius: 999px; background: var(--citrus-soft); border: 2px solid var(--citrus); }
+  .gauge-mark { position: absolute; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--green); border: 3px solid #fff; box-shadow: 0 1px 5px rgba(18, 38, 28, 0.35); }
+  .gauge-scale { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-3); }
+  .gauge-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+  .gauge-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lg-band { width: 18px; height: 10px; border-radius: 999px; background: var(--citrus-soft); border: 2px solid var(--citrus); }
+  .lg-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); }
+  .budget-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-3); }
+
+  /* Semaine compacte */
+  .breakfast { display: flex; gap: 10px; align-items: center; padding: 10px 14px; background: var(--citrus-soft); border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.4; }
+  .breakfast .meal-kind { color: var(--citrus-ink); }
+  .breakfast .dish-ico { background: #fff; }
+  .day2 { display: grid; grid-template-columns: 44px 1fr; gap: 10px; padding: 10px 12px; align-items: start; }
+  .day2 + .day2 { border-top: 1px solid var(--line); }
+  .day2:nth-child(6) .day-tag, .day2:nth-child(7) .day-tag { background: var(--citrus-soft); color: var(--citrus-ink); }
+  .dmeals { display: grid; grid-template-columns: 1fr; gap: 6px; min-width: 0; align-self: center; }
+  @media (min-width: 560px) { .dmeals { grid-template-columns: 1fr 1fr; gap: 8px 12px; } }
+  .dish { display: flex; gap: 8px; align-items: center; min-width: 0; }
+  .dish-ico { width: 30px; height: 30px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px; background: var(--mint); font-size: 19px; line-height: 1; }
+  .dish-text { min-width: 0; }
+  .dish-text { font-size: 14px; line-height: 1.3; }
+  .dish-text .meal-kind { display: inline; margin-right: 6px; font-size: 11px; }
+  .dish-name { font-weight: 600; }
+  .stats .stat.alt { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+  .stats .stat.alt .stat-label { flex-basis: 100%; }
+
+  /* Carte recette */
+  .recipe-head { display: flex; gap: 12px; align-items: center; padding: 14px; border-bottom: 1px solid var(--line); }
+  .recipe-ico { width: 56px; height: 56px; flex-shrink: 0; display: grid; place-items: center; border-radius: 16px; background: var(--citrus-soft); font-size: 30px; line-height: 1; }
+  .recipe-head h3 { margin: 0 0 6px; font: 800 19px/1.2 var(--display); letter-spacing: -0.01em; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badges span { font-size: 13px; font-weight: 700; color: var(--green-deep); background: var(--mint); padding: 3px 9px; border-radius: 999px; }
+  .steps { margin: 4px 0 2px; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: 15px; line-height: 1.45; }
+  .steps li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: #fff; font: 800 14px/28px var(--display); text-align: center; }
+
+  /* Boutons dans une carte */
+  .card-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--line); }
+
+  /* Carte Premium (Mode Coach) : chaude et lumineuse, dorée, sans fond foncé */
+  .premium {
+    position: relative;
+    border: 0;
+    background:
+      linear-gradient(var(--white), var(--white)) padding-box,
+      linear-gradient(135deg, #FFC83D, #F2803A 55%, #FFC83D) border-box;
+    border: 2px solid transparent;
+    box-shadow: 0 10px 30px rgba(242, 128, 58, 0.18), 0 2px 6px rgba(18, 38, 28, 0.05);
+  }
+  .pm-hero {
+    position: relative; overflow: hidden;
+    padding: 18px 18px 16px;
+    background:
+      radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0) 38%),
+      linear-gradient(150deg, #FFF6D6 0%, #FFE3B0 55%, #FFD2A8 100%);
+  }
+  /* Reflet doré qui traverse l'en-tête une fois, à l'apparition (aucun déplacement de la page) */
+  .pm-hero::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-18deg);
+    animation: pm-shine 1.4s 0.35s var(--ease-out) both;
+    pointer-events: none;
+  }
+  @keyframes pm-shine { from { left: -60%; } to { left: 120%; } }
+  .pm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; position: relative; z-index: 1; }
+  .pm-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 11px; border-radius: 999px;
+    background: linear-gradient(135deg, #FFC83D, #F2803A);
+    color: var(--ink); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(242, 128, 58, 0.35);
+  }
+  .pm-trial { padding: 5px 11px; border-radius: 999px; background: var(--white); color: var(--citrus-ink); font-size: 12px; font-weight: 700; }
+  .pm-title { position: relative; z-index: 1; margin: 0; font: 800 clamp(30px, 8.4vw, 38px)/1 var(--display); letter-spacing: -0.03em; color: var(--ink); }
+  .pm-title, .pm-sub { padding-right: 72px; }
+  .pm-sub { position: relative; z-index: 1; margin: 6px 0 0; font-size: 16px; font-weight: 600; color: #6B3A12; }
+  .pm-emblem {
+    position: absolute; right: 14px; bottom: 10px;
+    width: 62px; height: 62px; display: grid; place-items: center;
+    border-radius: 50%; background: rgba(255, 255, 255, 0.7);
+    font-size: 32px; line-height: 1;
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35);
+  }
+  .pm-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .pm-kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #8A4B0F; }
+  .pm-podium { border-radius: 16px; background: var(--citrus-soft); padding: 12px 12px 10px; }
+  .pm-podium-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 8px; font-size: 15px; }
+  .pm-podium-head .pm-small { font-size: 12px; color: var(--citrus-ink); }
+  .pm-podium ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .pm-podium li { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: 12px; padding: 7px 10px; font-size: 15px; }
+  .pm-rank { width: 24px; height: 24px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; font: 800 13px/1 var(--display); color: var(--ink); background: #FFE08A; }
+  .pm-podium li:nth-child(2) .pm-rank { background: #E4E9E6; }
+  .pm-podium li:nth-child(3) .pm-rank { background: #F6D2B5; }
+  .pm-food { flex: 1; font-weight: 600; }
+  .pm-price-tag { font: 800 15px/1 var(--display); color: var(--green-deep); font-variant-numeric: tabular-nums; }
+  .pm-source { margin: 8px 2px 0; font-size: 12px; color: var(--citrus-ink); }
+  .pm-features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pm-features li { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--screen); font-size: 13px; line-height: 1.3; color: var(--ink-3); }
+  .pm-features strong { display: block; font-size: 14px; color: var(--ink); margin-bottom: 1px; }
+  .pm-ico { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: var(--white); font-size: 18px; line-height: 1; box-shadow: 0 1px 3px rgba(18, 38, 28, 0.08); }
+  .pm-offer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1.5px dashed #F2B36B; background: #FFFBF1; }
+  .pm-offer-main { display: flex; flex-direction: column; }
+  .pm-free { font: 800 34px/1 var(--display); letter-spacing: -0.03em; color: var(--ink); }
+  .pm-free-sub { white-space: nowrap; font-size: 13px; font-weight: 700; color: #8A4B0F; }
+  .pm-offer-then { text-align: right; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
+  .pm-offer-then strong { color: var(--ink); font-size: 15px; }
+  .pm-actions { display: flex; flex-direction: column; gap: 6px; }
+  .pm-cta {
+    min-height: 54px; border: 0; border-radius: 999px;
+    background: linear-gradient(135deg, #FFC83D, #F2803A);
+    color: var(--ink); font-size: 17px; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(242, 128, 58, 0.35);
+    transition: filter 0.15s, box-shadow 0.15s;
+  }
+  .pm-cta:hover { filter: brightness(1.05); box-shadow: 0 8px 22px rgba(242, 128, 58, 0.45); }
+  .pm-no { min-height: 40px; border: 0; background: none; font-size: 15px; font-weight: 600; color: var(--ink-3); text-decoration: underline; text-underline-offset: 4px; }
+  .pm-cta:disabled, .pm-no:disabled { opacity: 0.5; cursor: default; filter: none; }
+  .pm-fine { margin: 0; text-align: center; font-size: 12px; line-height: 1.45; color: var(--ink-3); }
+  @media (max-width: 350px) { .pm-features { grid-template-columns: 1fr; } }
+
+  /* Petite ligne Premium (mieux manger) */
+  .coach-teaser {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px;
+    padding: 10px 10px 10px 12px; border-radius: 16px;
+    background:
+      linear-gradient(120deg, #FFF8E1, #FFEBD2) padding-box,
+      linear-gradient(135deg, #FFC83D, #F2803A) border-box;
+    border: 1.5px solid transparent;
+    font-size: 14px; line-height: 1.4; color: var(--ink-2);
+  }
+  .pm-badge-sm { padding: 4px 9px; font-size: 11px; }
+  .coach-teaser strong { color: var(--ink); }
+  .ct-text { flex: 1; min-width: 170px; }
+  .ct-open {
+    min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px;
+    background: linear-gradient(135deg, #FFC83D, #F2803A); color: var(--ink);
+    font-size: 14px; font-weight: 800; box-shadow: 0 3px 10px rgba(242, 128, 58, 0.3);
+  }
+  @media (prefers-reduced-motion: reduce) { .pm-hero::after { animation: none; display: none; } }
+
+  /* Panneau « Ta gamelle » sur ordinateur */
+  .side { display: none; }
+  @media (min-width: 1080px) {
+    body.has-side .app { margin-left: calc(50% - 490px); }
+    body.has-side .side:not([hidden]) {
+      display: flex; flex-direction: column; gap: 12px;
+      position: fixed; top: 20px; left: calc(50% + 170px);
+      width: 320px; max-height: calc(100dvh - 40px); overflow-y: auto;
+    }
+  }
+  .side h2 { margin: 4px 0 0; font: 800 22px/1.1 var(--display); color: var(--green); }
+  .side-card { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px; }
+  .side-card .budget { border: 0; padding: 0; border-radius: 0; }
+  .side-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .side-tags span { background: var(--mint); padding: 6px 10px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+  .side-muted, .side-tip { margin: 0; font-size: 14px; color: var(--ink-3); }
+
+  /* Apparition : uniquement un fondu (aucun déplacement). */
+  .reveal { animation: fade 0.45s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Attente */
+  .loader {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--white); border: 1px solid var(--line);
+    border-radius: 6px 18px 18px 18px;
+    min-width: 0;
+  }
+  .mini-tray { width: 40px; height: 32px; flex-shrink: 0; }
+  .mini-tray rect.f { fill: var(--line); animation: fill 1.8s infinite; }
+  .mini-tray rect.f:nth-of-type(2) { animation-delay: 0.3s; }
+  .mini-tray rect.f:nth-of-type(3) { animation-delay: 0.6s; }
+  @keyframes fill { 0%, 100% { fill: var(--line); } 30%, 60% { fill: var(--citrus); } }
+  .loader-text { font-size: 15px; color: var(--ink-2); min-height: 1.5em; }
+  .loader-sub { display: block; font-size: 13px; color: var(--ink-3); }
+
+  .msg-error { border-color: #E9B4AE; background: #FFF6F5; }
+  .retry {
+    margin-top: 8px; min-height: 40px; padding: 0 14px;
+    border: 1px solid var(--green); border-radius: 999px;
+    background: var(--white); color: var(--green-deep);
+    font-size: 15px; font-weight: 700;
+  }
+
+  /* ---------- Réponses en un clic ---------- */
+  .dock {
+    padding: 10px 12px 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--white);
+  }
+  .quick-label { margin: 0 4px 6px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .quick { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; max-height: 34vh; overflow-y: auto; overscroll-behavior: contain; }
+  .quick:empty { display: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 40px; padding: 0 14px;
+    border: 1.5px solid var(--green); border-radius: 999px;
+    background: var(--white); color: var(--green-deep);
+    font-size: 14.5px; font-weight: 700;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .chip:hover { background: var(--mint); }
+  .chip .e { font-size: 16px; line-height: 1; }
+  .chip.solid { background: var(--green); color: #fff; }
+  .chip.solid:hover { background: var(--green-hover); }
+  .chip.soft { border-color: var(--line); color: var(--ink-2); font-weight: 600; }
+  .chip.soft:hover { background: var(--mint); }
+  .chip[aria-pressed="true"] { background: var(--green); color: #fff; }
+  .chip:disabled { opacity: 0.45; cursor: default; }
+  .composer { display: flex; align-items: flex-end; gap: 8px; }
+  .composer textarea {
+    flex: 1; resize: none;
+    min-height: 46px; max-height: 120px;
+    padding: 11px 14px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--screen); color: var(--ink);
+    font: inherit; font-size: 15px; line-height: 1.4;
+  }
+  .composer textarea::placeholder { color: var(--ink-3); }
+  .composer textarea:focus { outline: 2px solid var(--green); outline-offset: 0; border-color: transparent; background: var(--white); }
+  .send {
+    width: 46px; height: 46px; flex-shrink: 0;
+    display: grid; place-items: center;
+    border: 0; border-radius: 50%;
+    background: var(--green); color: #fff;
+  }
+  .send:hover { background: var(--green-hover); }
+  .send:disabled { cursor: default; background: var(--line); color: var(--ink-3); }
+
+  /* ---------- Mode Frigo : feuille de choix ---------- */
+  .sheet-backdrop {
+    position: fixed; inset: 0; z-index: 10;
+    background: rgba(18, 38, 28, 0.38);
+    display: flex; align-items: flex-end; justify-content: center;
+    animation: fade 0.2s both;
+  }
+  .sheet {
+    width: 100%; max-width: 640px; max-height: 86dvh;
+    display: flex; flex-direction: column;
+    background: var(--white);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -10px 40px rgba(18, 38, 28, 0.18);
+  }
+  .sheet-head { padding: 16px 18px 10px; display: flex; align-items: flex-start; gap: 12px; }
+  .sheet-head h2 { margin: 0; font: 800 22px/1.15 var(--display); }
+  .sheet-head p { margin: 4px 0 0; font-size: 14px; color: var(--ink-3); }
+  .sheet-close {
+    margin-left: auto; width: 40px; height: 40px; flex-shrink: 0;
+    display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 50%; background: var(--white);
+  }
+  .sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 4px 18px 12px; }
+  .sheet-group { margin: 12px 0 8px; font-size: 13px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .ingredients { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ing {
+    display: inline-flex; align-items: center; gap: 7px;
+    min-height: 44px; padding: 0 14px 0 10px;
+    border: 1.5px solid var(--line); border-radius: 999px;
+    background: var(--white); font-size: 15px; font-weight: 600;
+  }
+  .ing .e { font-size: 19px; line-height: 1; }
+  .ing:hover { border-color: var(--sage); }
+  .ing[aria-pressed="true"] { border-color: var(--green); background: var(--mint); color: var(--green-deep); box-shadow: 0 0 0 1px var(--green) inset; }
+  .sheet-foot { padding: 12px 18px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
+  .sheet-foot .primary { width: 100%; }
+
+  @media (min-width: 600px) {
+    .bar, .guide-body, .guide-foot, .messages { padding-left: 22px; padding-right: 22px; }
+    .options.grid2-wide { grid-template-columns: 1fr 1fr; }
+    .app { border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .sheet-backdrop { animation: none; }
+    .mini-tray rect.f { animation: none; fill: var(--citrus); }
+    .progress i, .option, .chip { transition: none; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 512 512"><rect width="512" height="512" rx="120" fill="#187A48"/><rect x="146" y="166" width="220" height="180" rx="40" fill="none" stroke="#fff" stroke-width="24"/><path d="M246 166v180M246 256h120" stroke="#fff" stroke-width="24"/><rect x="170" y="268" width="64" height="66" rx="10" fill="#FFC83D"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <header class="bar">
+    <svg class="logo" aria-hidden="true"><use href="#logo"/></svg>
+    <div class="brand">
+      <h1 class="wordmark">Gamelle</h1>
+      <span class="status">Assistant IA, en ligne</span>
+    </div>
+    <span class="test-badge" id="test-badge" hidden>Mode test</span>
+    <button class="restart" id="restart" type="button" hidden>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      <span>Recommencer</span>
+    </button>
+  </header>
+
+  <main class="guide" id="guide">
+    <div class="guide-body" id="guide-body">
+      <!-- Le concept, en premier : c'est la première chose que voit l'étudiant. -->
+      <section class="hero" id="hello" aria-labelledby="hero-title">
+        <p class="hero-eyebrow"><svg class="avatar" aria-hidden="true"><use href="#logo"/></svg>Coach nutrition IA pour étudiants</p>
+        <h2 class="hero-title" id="hero-title">Mange équilibré, <span>quel que soit ton budget.</span></h2>
+        <p class="hero-lede">Tu me donnes ton budget courses. Je te prépare <strong>ta semaine de repas</strong>, les recettes et <strong>ta liste de courses avec son prix</strong>.</p>
+        <ol class="hero-steps">
+          <li><span class="hero-ico" aria-hidden="true">💶</span><span><strong>1. Ton budget</strong>de 25 à 50 € et +</span></li>
+          <li><span class="hero-ico" aria-hidden="true">🗓️</span><span><strong>2. Ta semaine</strong>midi et soir, 7 jours</span></li>
+          <li><span class="hero-ico" aria-hidden="true">🛒</span><span><strong>3. Tes courses</strong>liste et coût estimé</span></li>
+        </ol>
+        <p class="hero-note">Je suis une IA · 4 questions, un clic chacune · gratuit</p>
+      </section>
+      <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="guide-top">
+        <button class="back" id="back" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          Retour
+        </button>
+        <span class="step-count" id="step-count"></span>
+      </div>
+      <h2 class="question" id="question" tabindex="-1"></h2>
+      <p class="hint" id="hint"></p>
+      <div class="options" id="options"></div>
+    </div>
+    <div class="guide-foot">
+      <button class="primary" id="finish" type="button" hidden disabled>Préparer ma semaine</button>
+      <button class="link" id="free-chat" type="button">Je préfère écrire à Gamelle</button>
+      <p class="disclaimer">Gamelle est une IA, pas un médecin ni un diététicien.</p>
+    </div>
+  </main>
+
+  <section class="chat" id="chat" hidden aria-label="Conversation avec Gamelle">
+    <div class="messages" id="messages" role="log" aria-live="polite"></div>
+    <div class="dock">
+      <p class="quick-label" id="quick-label">Touche une réponse</p>
+      <div class="quick" id="quick" role="group" aria-labelledby="quick-label"></div>
+      <form class="composer" id="composer">
+        <label class="sr-only" for="input">Ton message</label>
+        <textarea id="input" rows="1" maxlength="1000" placeholder="Ou écris ici…"></textarea>
+        <button class="send" id="send" type="submit" aria-label="Envoyer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+        </button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<aside class="side" id="side" hidden aria-label="Ta gamelle : récapitulatif"></aside>
+
+<script>
+  // Version 2 (visuels), 15 nov. 2026 : copie de make-chatbot/index.html avec jauge de budget,
+  // semaine compacte avec icônes de plats, carte recette, copie de la liste, carte Mode Coach
+  // et panneau « Ta gamelle » sur ordinateur. L’original reste intact.
+  // Adresse du webhook Make « gamelle-chat » (module 1 du scénario).
+  const WEBHOOK_URL = ""; // version de démonstration publique : aucun appel à Make
+  // « ?demo » dans l'adresse : réponses d'exemple pour vérifier l'affichage sans appeler Make.
+  const DEMO = true;
+
+  const QUESTIONS = [
+    {
+      id: "budget", slot: "Budget", icon: "💶",
+      title: "Ton budget courses de la semaine ?",
+      hint: "Pas sûr ? Choisis une formule. Sous 25 €, Gamelle te le dira honnêtement.",
+      options: [
+        { label: "Serré", detail: "Légumineuses, œufs, surgelés", aside: "25–30 €", short: "25–30 €", value: "Serré, 25 à 30 € par semaine", e: "🪙", t: "citrus" },
+        { label: "Standard", detail: "Plus de fruits et légumes frais", aside: "35–45 €", short: "35–45 €", value: "Standard, 35 à 45 € par semaine", e: "🛒", t: "green" },
+        { label: "Confort", detail: "Plus de viande et de poisson", aside: "50 € et +", short: "50 € et +", value: "Confort, 50 € et plus par semaine", e: "🧺", t: "carrot" },
+        { label: "Je saisis un montant", detail: "Par exemple 32 €", e: "✏️", manual: true }
+      ]
+    },
+    {
+      id: "objectif", slot: "Objectif", icon: "🎯",
+      title: "Ton objectif ?",
+      hint: "Gamelle adapte les repas et les protéines.",
+      options: [
+        { label: "Mieux manger", detail: "Des repas équilibrés, sans chiffres", short: "Mieux manger", value: "mieux manger", e: "🥗", t: "green" },
+        { label: "Prise de masse", detail: "Prendre du muscle, avec le sport", short: "Prise de masse", value: "prise de masse", e: "💪", t: "citrus" },
+        { label: "Sèche", detail: "Perdre du poids en douceur", short: "Sèche", value: "sèche (perte de poids)", e: "🏃", t: "carrot" }
+      ]
+    },
+    {
+      id: "regime", slot: "Régime", icon: "🍽️", grid: true,
+      title: "Tu suis un régime alimentaire ?",
+      hint: "Gamelle applique ton choix, sans commentaire.",
+      options: [
+        { label: "Aucun", short: "Aucun", value: "aucun", e: "🍽️", t: "green" },
+        { label: "Végétarien", short: "Végétarien", value: "végétarien", e: "🥚", t: "citrus" },
+        { label: "Végan", short: "Végan", value: "végan", e: "🌱", t: "green" },
+        { label: "Halal", short: "Halal", value: "halal", e: "🏷️", t: "carrot" },
+        { label: "Casher", short: "Casher", value: "casher", e: "🏷️", t: "carrot" }
+      ]
+    },
+    {
+      id: "cuisine", slot: "Cuisine", icon: "🍳", multi: true,
+      title: "Ton équipement de cuisine ?",
+      hint: "Touche tout ce que tu as, puis « Préparer ma semaine ».",
+      options: [
+        { label: "Plaque de cuisson", short: "Plaque", value: "plaque de cuisson", e: "🍳", t: "carrot" },
+        { label: "Four", short: "Four", value: "four", e: "🔥", t: "citrus" },
+        { label: "Micro-ondes", short: "Micro-ondes", value: "micro-ondes", e: "⚡", t: "green" }
+      ]
+    }
+  ];
+
+  const WELCOME = "Salut, moi c'est Gamelle. Je suis une IA, un coach nutrition pour les étudiants.\n" +
+    "Dis-moi ton budget courses pour la semaine, et je te prépare des menus équilibrés, des recettes rapides et ta liste de courses.\n\n" +
+    "Combien veux-tu dépenser en courses cette semaine ?";
+
+  // Ingrédients proposés en Mode Frigo (produits du relevé de prix et de la banque de recettes).
+  const FRIDGE = [
+    { group: "Placard", items: [["🍚", "Riz"], ["🍝", "Pâtes"], ["🥣", "Flocons d'avoine"], ["🫘", "Lentilles"], ["🧆", "Pois chiches"], ["🫘", "Haricots rouges"], ["🐟", "Thon en boîte"], ["🥫", "Sardines"], ["🍅", "Pulpe de tomate"], ["🌾", "Semoule"], ["🥜", "Beurre de cacahuète"], ["🍞", "Pain complet"]] },
+    { group: "Frais", items: [["🥚", "Œufs"], ["🥛", "Lait"], ["🥄", "Yaourts"], ["🧀", "Fromage râpé"], ["🍗", "Poulet"], ["🥩", "Steak haché"], ["⬜", "Tofu"]] },
+    { group: "Fruits, légumes et surgelés", items: [["🍌", "Bananes"], ["🍎", "Pommes"], ["🥕", "Carottes"], ["🧅", "Oignons"], ["🥔", "Pommes de terre"], ["🥬", "Épinards surgelés"], ["🫛", "Petits pois surgelés"], ["🫑", "Haricots verts"]] }
+  ];
+
+  const DAYS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+  const CHECK = '<svg width="14" height="14" aria-hidden="true"><use href="#check"/></svg>';
+  const LOGO = '<svg class="avatar" aria-hidden="true"><use href="#logo"/></svg>';
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    app: $("app"), guide: $("guide"), chat: $("chat"), guideBody: $("guide-body"),
+    progress: $("progress"), stepCount: $("step-count"), hello: $("hello"),
+    back: $("back"), question: $("question"), hint: $("hint"),
+    options: $("options"), finish: $("finish"), freeChat: $("free-chat"),
+    restart: $("restart"), messages: $("messages"), composer: $("composer"),
+    input: $("input"), send: $("send"), quick: $("quick"), quickLabel: $("quick-label")
+  };
+  if (DEMO) $("test-badge").hidden = false;
+
+  let state;
+  let lastTurn = null;
+  function newSessionId() {
+    return (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : "s-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+  }
+  function reset() {
+    state = {
+      sessionId: newSessionId(),
+      step: 0,
+      answers: {},
+      equipment: [],
+      manualOpen: false,
+      busy: false,
+      lastMessage: "",
+      lastOpts: {},
+      history: "",
+      plan: null,      // dernière semaine affichée (jours et plats), pour les boutons
+      lastCost: null,  // dernier coût de semaine affiché (jauge)
+      lastProt: null,
+      coachShown: false,    // carte Mode Coach déjà affichée
+      coachAnswered: false  // l'étudiant a déjà répondu (oui ou non) : on ne la repropose plus
+    };
+    lastTurn = null;
+    els.messages.innerHTML = "";
+    els.quick.innerHTML = "";
+    els.chat.hidden = true;
+    els.guide.hidden = false;
+    els.restart.hidden = true;
+    renderStep(false);
+    updateSide();
+  }
+
+  /* ---------- Questions guidées ---------- */
+  function renderStep(moveFocus) {
+    const q = QUESTIONS[state.step];
+    [...els.progress.children].forEach((bar, i) => {
+      bar.className = state.answers[QUESTIONS[i].id] && i !== state.step ? "done" : (i === state.step ? "now" : "");
+    });
+    els.stepCount.textContent = "Question " + (state.step + 1) + " sur 4";
+    els.question.textContent = q.title;
+    els.hello.hidden = state.step !== 0;
+    els.hint.textContent = q.hint || "";
+    els.back.style.visibility = state.step === 0 ? "hidden" : "visible";
+    els.finish.hidden = !q.multi;
+    els.options.innerHTML = "";
+    els.options.className = "options" + (q.grid ? " grid2" : "");
+    els.options.setAttribute("role", "group");
+    els.options.setAttribute("aria-label", q.title);
+
+    if (q.multi) {
+      const current = state.answers[q.id];
+      if (current && !state.equipment.length) state.equipment = current.values.slice();
+      q.options.forEach((opt, idx) => {
+        const on = state.equipment.includes(opt.value);
+        const b = optionButton(opt, on, true);
+        b.addEventListener("click", () => {
+          state.equipment = on ? state.equipment.filter(v => v !== opt.value) : state.equipment.concat(opt.value);
+          renderStep(false);
+          els.options.children[idx].focus();
+        });
+        els.options.appendChild(b);
+      });
+      els.finish.disabled = state.equipment.length === 0;
+    } else {
+      q.options.forEach((opt) => {
+        const chosen = state.answers[q.id];
+        const on = chosen && (opt.manual ? chosen.manual : chosen.value === opt.value);
+        if (opt.manual && state.manualOpen) { els.options.appendChild(amountForm()); return; }
+        const b = optionButton(opt, !!on, false);
+        b.addEventListener("click", () => {
+          if (opt.manual) { state.manualOpen = true; renderStep(false); $("amount").focus(); return; }
+          answer(q.id, { short: opt.short, value: opt.value });
+        });
+        els.options.appendChild(b);
+      });
+    }
+    els.guideBody.scrollTop = 0;
+    if (moveFocus) els.question.focus();
+  }
+
+  function optionButton(opt, pressed, multi) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "option" + (opt.manual ? " manual" : "");
+    b.setAttribute("aria-pressed", pressed ? "true" : "false");
+    b.innerHTML =
+      '<span class="tile ' + (opt.t || "") + '" aria-hidden="true">' + opt.e + '</span>' +
+      '<span class="option-text"><span class="option-label">' + esc(opt.label) + '</span>' +
+      (opt.detail ? '<span class="option-detail">' + esc(opt.detail) + '</span>' : '') + '</span>' +
+      (multi ? '<span class="check">' + CHECK + '</span>'
+             : (opt.aside ? '<span class="option-aside">' + esc(opt.aside) + '</span>' : ''));
+    return b;
+  }
+
+  function amountForm() {
+    const wrap = document.createElement("form");
+    wrap.innerHTML =
+      '<label class="sr-only" for="amount">Ton budget en euros par semaine</label>' +
+      '<div class="amount"><div class="amount-field">' +
+      '<input id="amount" type="number" inputmode="decimal" min="1" max="500" step="1" placeholder="32">' +
+      '<span>€ / semaine</span></div>' +
+      '<button class="primary" type="submit" style="padding:0 22px">Valider</button></div>' +
+      '<p class="amount-error" id="amount-error" hidden>Indique un montant entre 1 et 500 €.</p>';
+    wrap.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const n = Math.round(Number($("amount").value));
+      if (!n || n < 1 || n > 500) { $("amount-error").hidden = false; $("amount").focus(); return; }
+      state.manualOpen = false;
+      answer("budget", { short: n + " €", value: n + " € par semaine", manual: true });
+    });
+    return wrap;
+  }
+
+  function answer(id, value) {
+    state.answers[id] = value;
+    if (state.step < QUESTIONS.length - 1) { state.step += 1; renderStep(true); }
+    else startChatFromAnswers();
+  }
+
+  els.back.addEventListener("click", () => {
+    state.step = Math.max(0, state.step - 1);
+    state.manualOpen = false;
+    renderStep(true);
+  });
+
+  els.finish.addEventListener("click", () => {
+    const q = QUESTIONS[3];
+    const shorts = q.options.filter(o => state.equipment.includes(o.value)).map(o => o.short);
+    state.answers.cuisine = { short: shorts.join(", "), value: state.equipment.join(", "), values: state.equipment.slice() };
+    startChatFromAnswers();
+  });
+
+  els.freeChat.addEventListener("click", () => {
+    openChat();
+    const turn = newTurn();
+    renderBot(turn, WELCOME);
+    setQuick(WELCOME);
+  });
+
+  /* ---------- Conversation ---------- */
+  function openChat() {
+    els.guide.hidden = true;
+    els.chat.hidden = false;
+    els.restart.hidden = false;
+    updateTurnMin();
+    updateSide();
+  }
+
+  function startChatFromAnswers() {
+    const missing = QUESTIONS.findIndex(q => !state.answers[q.id]);
+    if (missing !== -1) { state.step = missing; renderStep(true); return; }
+    openChat();
+    const a = state.answers;
+    const text = "Voici mes réponses :\n" +
+      "- Budget : " + a.budget.value + "\n" +
+      "- Objectif : " + a.objectif.value + "\n" +
+      "- Régime : " + a.regime.value + "\n" +
+      "- Équipement : " + a.cuisine.value;
+    send(text, { recap: true, long: a.objectif.value === "mieux manger" });
+  }
+
+  // Le dernier tour fait au moins la hauteur visible (voir .turn.last).
+  function updateTurnMin() {
+    els.messages.style.setProperty("--turn-min", Math.max(0, els.messages.clientHeight - 24) + "px");
+  }
+  if (window.ResizeObserver) new ResizeObserver(updateTurnMin).observe(els.messages);
+  else window.addEventListener("resize", updateTurnMin);
+
+  function newTurn() {
+    if (lastTurn) lastTurn.classList.remove("last");
+    const t = document.createElement("div");
+    t.className = "turn last";
+    els.messages.appendChild(t);
+    lastTurn = t;
+    return t;
+  }
+  // Un seul placement, instantané, quand tu envoies : ton message en haut de l'écran.
+  // Ensuite, plus aucun défilement automatique.
+  function pinTurn(t) { els.messages.scrollTop = t.offsetTop - 8; }
+
+  function esc(t) {
+    return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function inline(t) { return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"); }
+
+  function userBubble(text, recap) {
+    const row = document.createElement("div");
+    row.className = "user-row";
+    if (recap) {
+      const a = state.answers;
+      row.innerHTML = '<div class="recap"><div class="recap-title">Mes réponses</div><div class="recap-tags">' +
+        QUESTIONS.map(q => '<span><span aria-hidden="true">' + q.icon + '</span>' + esc(a[q.id].short) + '</span>').join("") +
+        '</div></div>';
+    } else {
+      row.innerHTML = '<div class="msg-user">' + esc(text) + '</div>';
+    }
+    return row;
+  }
+
+  const WAIT_STEPS = ["Je regarde ton budget…", "Je choisis les recettes…", "Je varie midi et soir…", "Je fais ta liste de courses…", "Je calcule le coût…"];
+  function addLoader(turn, long) {
+    const row = document.createElement("div");
+    row.className = "bot-row";
+    row.innerHTML = LOGO + '<div class="loader" role="status">' +
+      '<svg class="mini-tray" viewBox="0 0 40 32" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="29" rx="7" fill="#fff" stroke="#187A48" stroke-width="2.5"/>' +
+      '<rect class="f" x="5" y="5" width="13" height="22" rx="3"/><rect class="f" x="21" y="5" width="14" height="9.5" rx="3"/><rect class="f" x="21" y="17.5" width="14" height="9.5" rx="3"/></svg>' +
+      '<span class="loader-text"><span class="lt">Gamelle réfléchit…</span><span class="loader-sub" hidden>Une semaine complète peut prendre une minute.</span></span></div>';
+    turn.appendChild(row);
+    const lt = row.querySelector(".lt"), sub = row.querySelector(".loader-sub");
+    let i = 0;
+    row.timer = setTimeout(function tick() {
+      lt.textContent = WAIT_STEPS[i % WAIT_STEPS.length];
+      sub.hidden = false;
+      i += 1;
+      row.timer = setTimeout(tick, 5000);
+    }, long ? 2500 : 6000);
+    return row;
+  }
+
+  function addError(turn, message) {
+    const row = document.createElement("div");
+    row.className = "bot-row";
+    row.innerHTML = LOGO + '<div class="bot-body"><div class="bubble-bot msg-error"><p>' + esc(message) + '</p></div></div>';
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "retry"; b.textContent = "Réessayer";
+    b.addEventListener("click", () => { row.remove(); send(state.lastMessage, Object.assign({}, state.lastOpts, { retry: true })); });
+    row.querySelector(".bubble-bot").appendChild(b);
+    turn.appendChild(row);
+  }
+
+  /* ---------- Lecture de la réponse : texte brut → cartes ---------- */
+  const DAY_RE = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/i;
+  const MEAL_RE = /^(petit[- ]?d[ée]j(?:euner)?|matin|midi|d[ée]jeuner|soir|d[îiée]ner|go[uû]ter|collation|en-cas)\b\s*(?:\([^)]*\))?\s*[:–—-]\s*/i;
+  const RAYON_RE = /^(fruits et légumes|légumes|fruits|viandes?|poissons?|viandes? et poissons?|protéines|œufs|produits laitiers|produits frais|crèmerie|laitages|féculents|épicerie|épicerie salée|épicerie sucrée|placard|conserves|surgelés|boulangerie|pain|condiments|boissons)\b/i;
+  const SOURCE_RE = /prix indicatifs|relev[ée]|carrefour en ligne|selon le magasin/i;
+
+  function clean(line) {
+    return line.replace(/^#{1,6}\s*/, "").replace(/^\*\*(.+)\*\*:?$/, "$1").replace(/\*\*/g, "").trim();
+  }
+  function isItem(line) { return /^([-•*]|\d+[.)])\s+/.test(line); }
+  function stripItem(line) { return line.replace(/^([-•*]|\d+[.)])\s+/, ""); }
+
+  function parse(text) {
+    const blocks = [];
+    let ctx = null, cur = null, lastShop = null, afterGap = false;
+    const textBlock = () => {
+      const b = blocks[blocks.length - 1];
+      if (b && b.type === "text" && !ctx) return b;
+      const nb = { type: "text", lines: [] }; blocks.push(nb); ctx = null; return nb;
+    };
+    text.split("\n").forEach((raw) => {
+      const line = raw.trim();
+      if (!line) {
+        afterGap = true;
+        if ((ctx === "cost" || ctx === "section") && cur.lines.length) ctx = null;
+        if (!ctx) { const b = blocks[blocks.length - 1]; if (b && b.type === "text" && b.lines.length && b.lines[b.lines.length - 1] !== "") b.lines.push(""); }
+        return;
+      }
+      const c = clean(line);
+      const gapBefore = afterGap;
+      afterGap = false;
+      const bare = c.replace(/^[-•*]\s*/, "");
+      const head = bare.replace(/\s*:\s*$/, "");
+      const inlineRest = (bare.match(/^[^:]{2,40}:\s*(.+)$/) || [])[1];
+
+      // Jour (« Lundi », « - Lundi : … »)
+      if (DAY_RE.test(head) && (head.length < 30 || inlineRest)) {
+        let week = blocks[blocks.length - 1];
+        if (!week || week.type !== "week") { week = { type: "week", days: [] }; blocks.push(week); }
+        const name = head.match(DAY_RE)[1];
+        const day = { name: name, items: [] };
+        week.days.push(day);
+        ctx = "week"; cur = day;
+        if (inlineRest && !/^\(/.test(inlineRest)) day.items.push(inlineRest);
+        return;
+      }
+      // Liste de courses
+      if (/^(ta |ma |la )?liste de courses\b/i.test(head) && head.length < 60) {
+        const shop = { type: "shop", groups: [] };
+        blocks.push(shop); lastShop = shop; ctx = "shop"; cur = null;
+        return;
+      }
+      // Rayon (dans la liste de courses)
+      if ((ctx === "shop" || lastShop) && head.length < 50 && !/\d/.test(head) && (RAYON_RE.test(head) || (ctx === "shop" && /:\s*$/.test(bare)))) {
+        const shop = ctx === "shop" ? blocks[blocks.length - 1] : lastShop;
+        const g = { name: head, items: [] };
+        shop.groups.push(g);
+        if (ctx !== "shop") { blocks.splice(blocks.indexOf(shop), 1); blocks.push(shop); }
+        ctx = "shop"; cur = g;
+        return;
+      }
+      // Coût estimé
+      if (/^co[uû]t (estim|total)/i.test(head)) {
+        const cost = { type: "cost", lines: [] };
+        blocks.push(cost); ctx = "cost"; cur = cost;
+        if (inlineRest) cost.lines.push(inlineRest);
+        return;
+      }
+      // Autre intertitre : ligne courte terminée par « : », sans chiffre
+      if (!isItem(c) && /:\s*$/.test(c) && c.length < 60 && !/\d/.test(c)) {
+        const sec = { type: "section", title: head, lines: [] };
+        blocks.push(sec); ctx = "section"; cur = sec;
+        return;
+      }
+
+      if (ctx === "week") {
+        // Après une ligne vide, un tiret qui n'est pas un repas (conseil, remarque) termine la semaine.
+        if (MEAL_RE.test(stripItem(c)) || (isItem(c) && !gapBefore)) { cur.items.push(stripItem(c)); return; }
+        ctx = null;
+      }
+      if (ctx === "shop") {
+        if (isItem(c)) {
+          if (!cur) { cur = { name: "", items: [] }; blocks[blocks.length - 1].groups.push(cur); }
+          cur.items.push(stripItem(c)); return;
+        }
+        ctx = null;
+      }
+      if (ctx === "cost") {
+        if (isItem(c) || /€|prix|relev|magasin|promo|budget|économ/i.test(c)) { cur.lines.push(stripItem(c)); return; }
+        ctx = null;
+      }
+      if (ctx === "section") { cur.lines.push(c); return; }
+      textBlock().lines.push(line);
+    });
+    return blocks.filter(b => !(b.type === "text" && !b.lines.some(Boolean)));
+  }
+
+  function mealInfo(item) {
+    const m = item.match(MEAL_RE);
+    let kind = "", rest = item, ico = "•";
+    if (m) {
+      const k = m[1].toLowerCase();
+      rest = item.slice(m[0].length);
+      if (/^petit|^matin/.test(k)) { kind = "Petit-déj"; ico = "☀️"; }
+      else if (/^midi|^d[ée]j/.test(k)) { kind = "Midi"; ico = "🍽️"; }
+      else if (/^soir|^d[îi]n|^d[ée]n/.test(k)) { kind = "Soir"; ico = "🌙"; }
+      else { kind = "En-cas"; ico = "🍎"; }
+    }
+    const leftover = /\breste/i.test(rest);
+    return { kind, ico, rest, leftover };
+  }
+  function dishName(rest) {
+    return rest.replace(/^(les? )?restes? (de |du |d'|d’)/i, "").replace(/\s*\((?:[^)]*)\)\s*/g, " ").replace(/\s+[–—-]\s+.*$/, "").replace(/\s+/g, " ").trim().replace(/[.;]$/, "");
+  }
+  function rayonIcon(name) {
+    const n = name.toLowerCase();
+    if (/fruit|légume/.test(n)) return "🥕";
+    if (/viande|poisson|protéine|œuf|oeuf/.test(n)) return "🍗";
+    if (/lait|crèmerie|frais/.test(n)) return "🥛";
+    if (/surgel/.test(n)) return "❄️";
+    if (/pain|boulang/.test(n)) return "🥖";
+    if (/féculent|épicerie|placard|conserve/.test(n)) return "🍝";
+    return "🛒";
+  }
+  function paragraphs(lines) {
+    let html = "", list = [];
+    const flush = () => { if (list.length) { html += "<ul>" + list.map(l => "<li>" + inline(l) + "</li>").join("") + "</ul>"; list = []; } };
+    lines.forEach((l) => {
+      if (!l) { flush(); return; }
+      if (isItem(l)) { list.push(stripItem(l)); return; }
+      flush();
+      html += SOURCE_RE.test(l) && l.length < 280 ? '<p class="source">' + inline(l) + '</p>' : "<p>" + inline(l) + "</p>";
+    });
+    flush();
+    return html;
+  }
+
+  /* ---------- Icônes des plats (banque de recettes) ---------- */
+  const DISH_ICONS = [
+    [/riz sauté/, "🍚"], [/curry/, "🍛"], [/chili/, "🌶️"], [/shakshuka/, "🍳"], [/dahl|dal\b/, "🥘"],
+    [/soupe|bouillon|velouté/, "🍲"], [/lentille/, "🥘"], [/hachis|parmentier/, "🥧"], [/gratin/, "🧀"],
+    [/pâtes|spaghetti|nouilles/, "🍝"], [/bowl|tofu/, "🥗"], [/tortilla|omelette/, "🍳"],
+    [/sardine|thon|poisson|saumon/, "🐟"], [/steak|bœuf|boeuf|haché/, "🥩"], [/poulet/, "🍗"], [/riz/, "🍚"],
+    [/houmous|pois chiches/, "🧆"], [/haricots/, "🫘"], [/porridge|flocons/, "🥣"], [/yaourt|fromage blanc/, "🥛"],
+    [/œuf|oeuf/, "🥚"], [/pain|tartine/, "🍞"], [/salade|crudités/, "🥗"], [/purée|pommes de terre/, "🥔"]
+  ];
+  function dishIcon(name) {
+    const n = String(name).toLowerCase();
+    const hit = DISH_ICONS.find(([re]) => re.test(n));
+    return hit ? hit[1] : "🍽️";
+  }
+  function fmt(n) { return n.toFixed(2).replace(".", ","); }
+
+  /* ---------- Jauge de budget ---------- */
+  // Budget de l'étudiant : réponses guidées, sinon ses messages écrits.
+  function budgetRange() {
+    const a = state.answers.budget;
+    const fromText = (t) => {
+      if (/serré/i.test(t)) return [25, 30, "25–30 €"];
+      if (/standard/i.test(t)) return [35, 45, "35–45 €"];
+      if (/confort/i.test(t)) return [50, 55, "50 € et +"];
+      const m = t.match(/(\d{2,3})\s?€/);
+      return m ? [Number(m[1]), Number(m[1]), m[1] + " €"] : null;
+    };
+    if (a) return a.manual ? [parseFloat(a.short), parseFloat(a.short), a.short] : fromText(a.value);
+    const said = state.history.split("\n").filter(l => l.indexOf("Étudiant :") === 0).join(" ");
+    return said ? fromText(said) : null;
+  }
+  function gaugeHTML(cost) {
+    const r = budgetRange();
+    const min = 20;
+    const max = Math.max(60, Math.ceil(((r ? r[1] : 0) + 10) / 5) * 5, Math.ceil((cost + 5) / 5) * 5);
+    const pct = (v) => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
+    let status = "", cls = "";
+    if (r) {
+      if (cost <= r[1] + 0.005) { status = cost < r[0] ? "Sous ton budget ✓" : "Dans ton budget ✓"; cls = "ok"; }
+      else { status = "+ " + fmt(cost - r[1]) + " € au-dessus"; cls = "over"; }
+    }
+    return '<div class="budget">' +
+      '<div class="budget-top"><div><span class="budget-label">Coût de la semaine</span><span class="budget-value">≈ ' + fmt(cost) + ' €</span></div>' +
+      (status ? '<span class="budget-status ' + cls + '">' + status + '</span>' : '') + '</div>' +
+      '<div class="gauge" role="img" aria-label="' + esc("Coût estimé " + fmt(cost) + " €" + (r ? ", ton budget " + r[2] : "")) + '">' +
+      (r ? '<span class="gauge-band" style="left:' + pct(r[0]) + '%;width:' + Math.max(3, pct(r[1]) - pct(r[0])) + '%"></span>' : '') +
+      '<span class="gauge-mark" style="left:' + pct(cost) + '%"></span></div>' +
+      '<div class="gauge-scale"><span>' + min + ' €</span><span>' + max + ' €</span></div>' +
+      // Légende : explique la zone jaune et le point vert.
+      '<div class="gauge-legend">' +
+      (r ? '<span><i class="lg-band" aria-hidden="true"></i>Zone jaune : ton budget (' + esc(r[0] === r[1] ? r[2] : r[0] + " à " + r[1] + " €") + ')</span>' : '') +
+      '<span><i class="lg-dot" aria-hidden="true"></i>Point vert : ta semaine (' + fmt(cost) + ' €)</span></div>' +
+      '<p class="budget-note">Prix indicatifs, Carrefour en ligne</p></div>';
+  }
+
+  function renderBot(turn, text) {
+    const blocks = parse(text);
+    const row = document.createElement("div");
+    row.className = "bot-row";
+    row.innerHTML = LOGO;
+    const body = document.createElement("div");
+    body.className = "bot-body";
+    row.appendChild(body);
+    let n = 0;
+    const add = (el) => { el.classList.add("reveal"); el.style.setProperty("--i", n++); body.appendChild(el); };
+    const div = (cls, html) => { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; return d; };
+
+    // Chiffres clés (coût et protéines)
+    const costBlock = blocks.find(b => b.type === "cost");
+    const costText = costBlock ? costBlock.lines.join(" ") : "";
+    const euro = (costText.match(/(\d+(?:[,.]\d{1,2})?)\s?€/) || [])[1];
+    const costNum = euro ? parseFloat(euro.replace(",", ".")) : null;
+    const prot = (text.match(/(\d{2,3})\s*(?:à|-|–)\s*(\d{2,3})\s*g\s+de\s+protéines/i) || []);
+    const hasWeek = blocks.some(b => b.type === "week" && b.days.length >= 3);
+    const hasShop = blocks.some(b => b.type === "shop");
+    if (costNum && (hasWeek || hasShop)) state.lastCost = costNum;
+    if (prot[1]) state.lastProt = prot[1] + "–" + prot[2] + " g";
+
+    // Recette : un intertitre « Ingrédients » et un intertitre « Étapes » → carte recette
+    const ingI = blocks.findIndex(b => b.type === "section" && /ingrédient/i.test(b.title));
+    const stepI = blocks.findIndex((b, i) => i !== ingI && b.type === "section" && /étape|préparation/i.test(b.title));
+    let recipe = null;
+    if (ingI !== -1 && stepI !== -1) {
+      let title = "";
+      const before = blocks[Math.min(ingI, stepI) - 1];
+      if (before && before.type === "text") {
+        const filled = before.lines.filter(Boolean);
+        const last = filled[filled.length - 1] || "";
+        if (last.length < 90 && !/\?\s*$/.test(last)) { title = last; before.lines.splice(before.lines.lastIndexOf(last), 1); }
+      } else if (before && before.type === "section" && !before.lines.length) { title = before.title; before.skip = true; }
+      recipe = { title: title.replace(/\*\*/g, ""), ing: blocks[ingI], steps: blocks[stepI] };
+      blocks[ingI].skip = true; blocks[stepI].skip = true;
+      blocks[Math.min(ingI, stepI)].recipeHere = true;
+    }
+
+    // Offre du Mode Coach en fin de réponse → carte dédiée
+    // (n'importe où dans les paragraphes de texte : une autre question peut suivre, ex. « Tu veux changer un plat ? »)
+    let coach = false;
+    blocks.forEach((b) => {
+      if (b.type !== "text") return;
+      b.lines.forEach((l, i) => {
+        if (!/mode coach/i.test(l)) return;
+        const next = b.lines[i + 1] || "";
+        const asks = /\?/.test(l) || /^on l['’]active\s*\?/i.test(next);
+        if (!asks) return;
+        coach = true;
+        b.lines[i] = "";
+        if (/^on l['’]active\s*\?/i.test(next)) b.lines[i + 1] = "";
+      });
+    });
+
+    let statsShown = false;
+    const stats = () => {
+      if (statsShown || (!costNum && !prot[1])) return;
+      statsShown = true;
+      add(div("stats",
+        (costNum ? gaugeHTML(costNum) : "") +
+        (prot[1] ? '<div class="stat alt"><span class="stat-label">Protéines par jour</span><span class="stat-value">' + prot[1] + '–' + prot[2] + ' g</span><span class="stat-note">Selon ton poids et ton objectif</span></div>' : "")));
+    };
+
+    blocks.forEach((b) => {
+      if (b.recipeHere) add(recipeCard(recipe, text));
+      if (b.skip) return;
+      if (b.type === "text") {
+        if (b.lines.some(Boolean)) add(div("bubble-bot", paragraphs(b.lines)));
+      } else if (b.type === "section" && !b.lines.length) {
+        add(div("kicker", inline(b.title)));
+      } else if (b.type === "section") {
+        add(div("bubble-bot", '<p class="sub">' + inline(b.title) + '</p>' + paragraphs(b.lines)));
+      } else if (b.type === "week") {
+        if (b.days.length < 2) { add(div("bubble-bot", '<p class="sub">' + esc(cap(b.days[0].name)) + '</p>' + paragraphs(b.days[0].items.map(i => "- " + i)))); return; }
+        stats();
+        add(weekCard(b));
+        state.plan = {
+          days: b.days.map(d => ({ name: d.name, meals: d.items.map(it => { const m = mealInfo(it); return { kind: m.kind, dish: dishName(m.rest) }; }).filter(m => m.dish) }))
+        };
+      } else if (b.type === "shop") {
+        stats();
+        add(shopCard(b, euro));
+      } else if (b.type === "cost") {
+        stats();
+        const lines = b.lines.filter(l => !SOURCE_RE.test(l) || l.length > 280);
+        const src = b.lines.filter(l => SOURCE_RE.test(l) && l.length <= 280);
+        add(div("card", '<div class="card-head"><span class="tile carrot" aria-hidden="true">💶</span><h3>Coût estimé</h3>' + (euro ? '<span class="meta">≈ ' + esc(euro.replace(".", ",")) + ' €</span>' : '') + '</div>' +
+          '<div class="card-foot">' + lines.map(l => '<p>' + inline(l) + '</p>').join("") + src.map(l => '<p class="source">' + inline(l) + '</p>').join("") + '</div>'));
+      }
+    });
+    // Premium toujours visible, une seule fois par conversation, sous la première semaine,
+    // même si Gamelle ne l'a pas proposé. Taille selon l'objectif :
+    // prise de masse / sèche (ou offre faite par Gamelle) → grande carte ; mieux manger → une petite ligne.
+    const offered = coach;
+    if (!coach && hasWeek && !state.coachShown) coach = true;
+    if (coach && !state.coachAnswered && !state.coachShown) {
+      add(offered || sportGoal() ? coachCard() : coachTeaser());
+      state.coachShown = true;
+    }
+    turn.appendChild(row);
+    return blocks;
+  }
+
+  // Semaine compacte : petits-déj regroupés en haut, puis une ligne par jour (midi | soir) avec l'icône du plat.
+  function weekCard(b) {
+    const breakfasts = [], seen = new Set();
+    b.days.forEach(d => d.items.forEach(it => {
+      const m = mealInfo(it);
+      if (m.kind !== "Petit-déj") return;
+      const name = dishName(m.rest), key = name.toLowerCase();
+      if (name && !seen.has(key)) { seen.add(key); breakfasts.push(name); }
+    }));
+    const rows = b.days.map((d) => {
+      const meals = d.items.map(mealInfo).filter(m => !(breakfasts.length && m.kind === "Petit-déj"));
+      return '<div class="day2"><div class="day-tag" aria-hidden="true">' + esc(cap(d.name).slice(0, 3)) + '</div>' +
+        '<div class="dmeals"><span class="sr-only">' + esc(cap(d.name)) + '</span>' + meals.map((m) => {
+          const name = dishName(m.rest) || m.rest;
+          return '<div class="dish"><span class="dish-ico" aria-hidden="true">' + dishIcon(name) + '</span><span class="dish-text">' +
+            (m.kind ? '<span class="meal-kind">' + m.kind + '</span>' : '') +
+            '<span class="dish-name">' + inline(upFirst(name)) + '</span>' +
+            (m.leftover ? '<span class="leftover">Restes</span>' : '') + '</span></div>';
+        }).join("") + '</div></div>';
+    }).join("");
+    return divEl("card",
+      '<div class="card-head"><span class="tile green" aria-hidden="true">🗓️</span><h3>Ta semaine</h3><span class="meta">' + b.days.length + ' jours</span></div>' +
+      (breakfasts.length ? '<div class="breakfast"><span class="dish-ico" aria-hidden="true">☀️</span><span><span class="meal-kind">Petits-déj de la semaine</span>' + breakfasts.map(x => inline(upFirst(x))).join(" · ") + '</span></div>' : '') +
+      '<div class="days">' + rows + '</div>');
+  }
+
+  function shopCard(b, euro) {
+    const total = b.groups.reduce((s, g) => s + g.items.length, 0);
+    const listText = "Liste de courses Gamelle\n\n" + b.groups.map(g => (g.name ? g.name + " :\n" : "") + g.items.map(i => "- " + i.replace(/\*\*/g, "")).join("\n")).join("\n\n") +
+      (euro ? "\n\nCoût estimé : environ " + euro.replace(".", ",") + " € (prix indicatifs, Carrefour en ligne)" : "");
+    const card = divEl("card",
+      '<div class="card-head"><span class="tile citrus" aria-hidden="true">🛒</span><h3>Liste de courses</h3><span class="meta"><span class="done-count">0</span>/' + total + ' cochés</span></div>' +
+      b.groups.map(g => '<div class="group">' + (g.name ? '<div class="group-name"><span aria-hidden="true">' + rayonIcon(g.name) + '</span><span>' + esc(g.name) + '</span></div>' : '') +
+        '<div class="items">' + g.items.map(it => '<button type="button" class="item" role="checkbox" aria-checked="false"><span class="box">' + CHECK + '</span><span class="item-text">' + inline(it) + '</span></button>').join("") + '</div></div>').join("") +
+      '<div class="card-actions"><button type="button" class="chip soft copy-list"><span class="e" aria-hidden="true">📋</span><span class="lbl">Copier la liste</span></button>' +
+      (navigator.share ? '<button type="button" class="chip soft share-list"><span class="e" aria-hidden="true">📤</span><span>Envoyer sur mon téléphone</span></button>' : '') + '</div>');
+    const counter = card.querySelector(".done-count");
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".copy-list")) {
+        const lbl = card.querySelector(".copy-list .lbl");
+        copyText(listText).then(() => { lbl.textContent = "Liste copiée ✓"; setTimeout(() => { lbl.textContent = "Copier la liste"; }, 2200); })
+          .catch(() => { lbl.textContent = "Copie impossible"; });
+        return;
+      }
+      if (e.target.closest(".share-list")) { navigator.share({ title: "Liste de courses Gamelle", text: listText }).catch(() => {}); return; }
+      const it = e.target.closest(".item");
+      if (!it) return;
+      it.setAttribute("aria-checked", it.getAttribute("aria-checked") === "true" ? "false" : "true");
+      counter.textContent = card.querySelectorAll('.item[aria-checked="true"]').length;
+    });
+    return card;
+  }
+  function copyText(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).catch(() => copyFallback(t));
+    return copyFallback(t);
+  }
+  function copyFallback(t) {
+    return new Promise((ok, ko) => {
+      const ta = document.createElement("textarea");
+      ta.value = t; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy") ? ok() : ko(); } catch (e) { ko(e); } finally { ta.remove(); }
+    });
+  }
+
+  function recipeCard(r, text) {
+    const time = (text.match(/(\d{1,3})\s*min/i) || [])[1];
+    const parts = (text.match(/(\d{1,2})\s*portions?/i) || [])[1];
+    const ppc = (text.match(/(\d+[,.]\d{2})\s*€\s*(?:la|par)\s*portion/i) || [])[1];
+    const title = r.title.replace(/\s*\([^)]*\)\s*$/, "").replace(/^recette( détaillée)?\s*(de|du|:)?\s*/i, "").replace(/[«»"]/g, "").replace(/\s*:\s*$/, "").trim() || "Ta recette";
+    const ing = r.ing.lines.filter(Boolean).map(stripItem);
+    const steps = r.steps.lines.filter(Boolean).map(stripItem);
+    return divEl("card recipe",
+      '<div class="recipe-head"><span class="recipe-ico" aria-hidden="true">' + dishIcon(title) + '</span><div><h3>' + inline(upFirst(title)) + '</h3><div class="badges">' +
+      (time ? '<span>⏱️ ' + time + ' min</span>' : '') + (parts ? '<span>🍽️ ' + parts + ' portions</span>' : '') + (ppc ? '<span>💶 ' + ppc.replace(".", ",") + ' € la portion</span>' : '') +
+      '</div></div></div>' +
+      '<div class="group"><div class="group-name"><span aria-hidden="true">🧺</span><span>Ingrédients</span></div><div class="items">' +
+      ing.map(it => '<button type="button" class="item" role="checkbox" aria-checked="false"><span class="box">' + CHECK + '</span><span class="item-text">' + inline(it) + '</span></button>').join("") + '</div></div>' +
+      '<div class="group"><div class="group-name"><span aria-hidden="true">👩‍🍳</span><span>Étapes</span></div><ol class="steps">' +
+      steps.map(s => '<li><span>' + inline(s) + '</span></li>').join("") + '</ol></div>');
+  }
+
+  // Carte Premium (Mode Coach) : chiffres réels de la fiche de connaissances (classement « protéines par euro »,
+  // Carrefour en ligne, 13 nov. 2026 ; prix de l'abonnement). Aucun paiement dans cette version : essai de démonstration.
+  function coachCard() {
+    const card = divEl("card premium",
+      '<div class="pm-hero">' +
+        '<div class="pm-tags"><span class="pm-badge">✦ Premium</span><span class="pm-trial">7 jours offerts</span></div>' +
+        '<h3 class="pm-title">Mode Coach</h3>' +
+        '<p class="pm-sub">Tu t’entraînes&nbsp;? Ton assiette aussi.</p>' +
+        '<span class="pm-emblem" aria-hidden="true">💪</span>' +
+      '</div>' +
+      '<div class="pm-body">' +
+        '<p class="pm-kicker">Aperçu de ce que tu débloques</p>' +
+        '<div class="pm-podium">' +
+          '<div class="pm-podium-head"><span aria-hidden="true">🥇</span><strong>Top protéines par euro</strong><span class="pm-small">pour 20 g de protéines</span></div>' +
+          '<ol>' +
+            '<li><span class="pm-rank">1</span><span class="pm-food">Lentilles vertes</span><span class="pm-price-tag">0,26 €</span></li>' +
+            '<li><span class="pm-rank">2</span><span class="pm-food">Lait demi-écrémé</span><span class="pm-price-tag">0,45 €</span></li>' +
+            '<li><span class="pm-rank">3</span><span class="pm-food">Fromage blanc 0 %</span><span class="pm-price-tag">0,48 €</span></li>' +
+          '</ol>' +
+          '<p class="pm-source">Prix Carrefour en ligne, 13 novembre 2026</p>' +
+        '</div>' +
+        '<ul class="pm-features">' +
+          '<li><span class="pm-ico" aria-hidden="true">🏋️</span><span><strong>Repas calés sur tes séances</strong>avec ta fourchette de protéines</span></li>' +
+          '<li><span class="pm-ico" aria-hidden="true">📊</span><span><strong>Bilan du dimanche</strong>le ressenti d’abord, en douceur</span></li>' +
+          '<li><span class="pm-ico" aria-hidden="true">🍱</span><span><strong>Batch cooking</strong>2 h le dimanche pour la semaine</span></li>' +
+          '<li><span class="pm-ico" aria-hidden="true">🏷️</span><span><strong>Codes promo sport</strong>bientôt disponibles</span></li>' +
+        '</ul>' +
+        '<div class="pm-offer">' +
+          '<div class="pm-offer-main"><span class="pm-free">0 €</span><span class="pm-free-sub">pendant 7 jours</span></div>' +
+          '<div class="pm-offer-then">puis <strong>2,99 €/mois</strong><br>ou 24,99 €/an, soit 2,08 €/mois</div>' +
+        '</div>' +
+        '<div class="pm-actions">' +
+          '<button type="button" class="pm-cta coach-yes"><span aria-hidden="true">✨</span> Essayer 7 jours gratuits</button>' +
+          '<button type="button" class="pm-no coach-no">Non merci</button>' +
+        '</div>' +
+        '<p class="pm-fine">Rappel avant la fin de l’essai, aucun prélèvement surprise. La version gratuite reste complète pour manger équilibré.</p>' +
+      '</div>');
+    card.addEventListener("click", (e) => {
+      const yes = e.target.closest(".coach-yes"), no = e.target.closest(".coach-no");
+      if ((!yes && !no) || state.busy) return;
+      card.querySelectorAll(".pm-actions button").forEach(b => { b.disabled = true; });
+      state.coachAnswered = true;
+      send(yes ? "Oui, on active l'essai gratuit du Mode Coach." : "Non merci, pas pour l'instant.");
+    });
+    return card;
+  }
+  // Objectif sportif ? (réponses guidées, sinon messages écrits)
+  function sportGoal() {
+    const o = state.answers.objectif ? state.answers.objectif.value
+      : state.history.split("\n").filter(l => l.indexOf("Étudiant :") === 0).join(" ");
+    return /prise de masse|sèche|muscle|perte de poids|perdre du poids/i.test(o);
+  }
+  // Petite ligne Premium (objectif « mieux manger ») ; « Découvrir » ouvre la carte complète à la même place.
+  function coachTeaser() {
+    const el = divEl("coach-teaser",
+      '<span class="pm-badge pm-badge-sm">✦ Premium</span>' +
+      '<span class="ct-text"><strong>Tu fais aussi du sport&nbsp;?</strong> Découvre le Mode Coach, 7 jours offerts.</span>' +
+      '<button type="button" class="ct-open">Découvrir <span aria-hidden="true">→</span></button>');
+    el.querySelector(".ct-open").addEventListener("click", () => {
+      const full = coachCard();
+      full.classList.add("reveal", "pm-opened");
+      el.replaceWith(full);
+      // Tu viens de cliquer : on amène la carte en vue, une seule fois.
+      const m = els.messages;
+      const top = full.getBoundingClientRect().top - m.getBoundingClientRect().top;
+      if (top > m.clientHeight * 0.35) {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const target = Math.round(m.scrollTop + top - 12);
+        m.scrollTo({ top: target, behavior: reduce ? "auto" : "smooth" });
+        // Filet de sécurité : si le défilement doux n'a pas eu lieu, on place la carte directement.
+        setTimeout(() => { if (Math.abs(m.scrollTop - target) > 4 && m.scrollTop < target - 4) m.scrollTop = target; }, 700);
+      }
+      full.querySelector(".coach-yes").focus({ preventScroll: true });
+    });
+    return el;
+  }
+  function divEl(cls, html) { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; return d; }
+
+  /* ---------- Panneau « Ta gamelle » (écrans d'ordinateur) ---------- */
+  function updateSide() {
+    const side = $("side");
+    const on = !els.chat.hidden;
+    side.hidden = !on;
+    document.body.classList.toggle("has-side", on);
+    if (!on) return;
+    const a = state.answers;
+    const tags = QUESTIONS.filter(q => a[q.id]).map(q => '<span><span aria-hidden="true">' + q.icon + '</span> ' + esc(a[q.id].short) + '</span>').join("");
+    side.innerHTML =
+      '<h2>Ta gamelle</h2>' +
+      '<div class="side-card"><span class="budget-label">Tes réponses</span>' + (tags ? '<div class="side-tags">' + tags + '</div>' : '<p class="side-muted">Conversation libre</p>') + '</div>' +
+      (state.lastCost ? '<div class="side-card">' + gaugeHTML(state.lastCost) + '</div>' : '<div class="side-card"><p class="side-muted">Le coût de ta semaine et ta jauge de budget s’afficheront ici.</p></div>') +
+      (state.lastProt ? '<div class="side-card"><span class="budget-label">Protéines par jour</span><span class="budget-value">' + esc(state.lastProt) + '</span></div>' : '') +
+      '<p class="side-tip">Touche les boutons sous la conversation pour continuer.</p>';
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+  function upFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  /* ---------- Boutons de réponse ---------- */
+  // Chaque bouton : { label, e (emoji), send (texte envoyé) | run (action), style }
+  function lastParagraph(text) {
+    const parts = text.trim().split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+    return (parts[parts.length - 1] || "").toLowerCase();
+  }
+
+  function planActions() {
+    const list = [];
+    if (state.plan && state.plan.days.length) {
+      list.push({ e: "📖", label: "Une recette", run: recipeMenu });
+      list.push({ e: "🔁", label: "Changer un repas", run: dayMenu });
+    }
+    list.push({ e: "💸", label: "Moins cher", send: "Propose-moi une version moins chère de cette semaine, avec la liste de courses et le coût mis à jour." });
+    list.push({ e: "🧊", label: "Mode Frigo", run: openFridge });
+    return list;
+  }
+
+  function suggestionsFor(text) {
+    const p = lastParagraph(text);
+    const asks = /\?/.test(p);
+    if (asks && /mode coach|on l'active/.test(p)) {
+      // Les boutons Oui / Non sont dans la carte Mode Coach ; en bas, la suite.
+      if (state.plan) return planActions();
+      return [
+        { e: "✅", label: "Essayer le Coach 7 jours", send: "Oui, on active l'essai gratuit du Mode Coach.", style: "solid" },
+        { e: "", label: "Non merci", send: "Non merci, pas pour l'instant.", style: "soft" }
+      ];
+    }
+    if (asks && /poids|\bkg\b/.test(p)) {
+      return ["Moins de 60 kg", "60 à 70 kg", "70 à 80 kg", "80 à 90 kg", "Plus de 90 kg"]
+        .map(w => ({ e: "", label: w, send: "Je pèse " + w.replace(/^Moins/, "moins").replace(/^Plus/, "plus") + "." }))
+        .concat([{ e: "🙊", label: "Je préfère ne pas répondre", send: "Je préfère ne pas donner mon poids.", style: "soft" }]);
+    }
+    if (asks && /budget|combien|dépenser|palier|formule/.test(p)) {
+      return QUESTIONS[0].options.filter(o => !o.manual).map(o => ({ e: o.e, label: o.label + " · " + o.aside, send: o.value }))
+        .concat([{ e: "🤷", label: "Je ne sais pas", send: "Je ne sais pas", style: "soft" }]);
+    }
+    if (asks && /objectif/.test(p)) {
+      return QUESTIONS[1].options.map(o => ({ e: o.e, label: o.label, send: "Mon objectif : " + o.value }));
+    }
+    if (asks && /régime|végétarien|halal|alimentation particulière/.test(p)) {
+      return QUESTIONS[2].options.map(o => ({ e: o.e, label: o.label, send: "Régime : " + o.value }));
+    }
+    if (asks && /équipement|plaque|four|micro/.test(p)) {
+      return equipmentToggle();
+    }
+    if (asks && /ingrédient|frigo|placard|chez toi/.test(p)) {
+      return [{ e: "🧊", label: "Choisir mes ingrédients", run: openFridge, style: "solid" }];
+    }
+    if (state.plan && /\b(semaine|liste de courses)\b/i.test(text) && text.length > 600) {
+      return planActions();
+    }
+    if (asks && /^(veux|tu veux|souhaites|on |est-ce|as-tu|tu as|ça te|cela te|préfères|tu préfères|je te|t'?en)/.test(p.split(/(?<=[.!])\s+/).pop() || "")) {
+      return [
+        { e: "👍", label: "Oui", send: "Oui", style: "solid" },
+        { e: "", label: "Non merci", send: "Non merci", style: "soft" }
+      ];
+    }
+    if (state.plan) return planActions();
+    return [
+      { e: "🗓️", label: "Préparer ma semaine", run: () => { reset(); } },
+      { e: "🧊", label: "Mode Frigo", run: openFridge },
+      { e: "❓", label: "Comment ça marche ?", send: "Comment ça marche, en deux phrases ?" }
+    ];
+  }
+
+  function equipmentToggle() {
+    const picked = [];
+    const opts = QUESTIONS[3].options.map(o => ({
+      e: o.e, label: o.label, toggle: true,
+      run: (btn) => {
+        const i = picked.indexOf(o.value);
+        if (i === -1) picked.push(o.value); else picked.splice(i, 1);
+        btn.setAttribute("aria-pressed", i === -1 ? "true" : "false");
+        ok.disabled = picked.length === 0;
+      }
+    }));
+    let ok;
+    opts.push({ e: "→", label: "Valider", style: "solid", disabled: true, ref: (b) => { ok = b; }, run: () => send("Équipement : " + picked.join(", ")) });
+    return opts;
+  }
+
+  function recipeMenu() {
+    const seen = new Set(), dishes = [];
+    state.plan.days.forEach(d => d.meals.forEach(m => {
+      const key = m.dish.toLowerCase();
+      if (m.kind !== "Petit-déj" && !seen.has(key) && m.dish.length < 70) { seen.add(key); dishes.push(m.dish); }
+    }));
+    showChips(dishes.slice(0, 10).map(d => ({ e: dishIcon(d), label: upFirst(d), send: "Donne-moi la recette détaillée de « " + d + " » : ingrédients pour 2 portions, étapes et temps." })), "Quelle recette ?", true);
+  }
+  function dayMenu() {
+    showChips(state.plan.days.map(d => ({ e: "", label: cap(d.name), run: () => mealMenu(d) })), "Quel jour ?", true);
+  }
+  function mealMenu(day) {
+    showChips(day.meals.map(m => ({ e: dishIcon(m.dish), label: (m.kind ? m.kind + " · " : "") + upFirst(m.dish),
+      send: "Remplace « " + m.dish + " » (" + (m.kind ? m.kind.toLowerCase() + " de " : "") + day.name.toLowerCase() + ") par un autre plat de la banque, dans le même budget, et mets à jour la liste de courses et le coût." })), "Quel repas changer ?", true);
+  }
+
+  let currentSet = [];
+  function setQuick(text) { showChips(suggestionsFor(text), "Touche une réponse", false); }
+
+  function showChips(list, label, withBack) {
+    if (!withBack) currentSet = list;
+    els.quickLabel.textContent = label;
+    els.quick.innerHTML = "";
+    const all = withBack ? [{ e: "←", label: "Retour", style: "soft", run: () => showChips(currentSet, "Touche une réponse", false) }].concat(list) : list;
+    all.forEach((c) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (c.style ? " " + c.style : "");
+      if (c.toggle) b.setAttribute("aria-pressed", "false");
+      b.disabled = !!c.disabled || state.busy;
+      b.innerHTML = (c.e ? '<span class="e" aria-hidden="true">' + c.e + '</span>' : '') + '<span>' + esc(c.label) + '</span>';
+      b.addEventListener("click", () => {
+        if (state.busy) return;
+        if (c.run) c.run(b);
+        else if (c.send) send(c.send);
+      });
+      if (c.ref) c.ref(b);
+      els.quick.appendChild(b);
+    });
+    els.quickLabel.hidden = !all.length;
+  }
+
+  /* ---------- Mode Frigo ---------- */
+  function openFridge() {
+    const picked = new Set();
+    const back = document.createElement("div");
+    back.className = "sheet-backdrop";
+    back.innerHTML =
+      '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fr-title">' +
+      '<div class="sheet-head"><div><h2 id="fr-title">🧊 Mode Frigo</h2><p>Touche ce que tu as déjà. Gamelle cuisine avec et complète la liste de courses.</p></div>' +
+      '<button class="sheet-close" type="button" aria-label="Fermer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+      '<div class="sheet-body">' + FRIDGE.map(g => '<div class="sheet-group">' + esc(g.group) + '</div><div class="ingredients">' +
+        g.items.map(([e, name]) => '<button type="button" class="ing" aria-pressed="false" data-name="' + esc(name) + '"><span class="e" aria-hidden="true">' + e + '</span>' + esc(name) + '</button>').join("") + '</div>').join("") + '</div>' +
+      '<div class="sheet-foot"><button class="primary" type="button" disabled>Choisis au moins un ingrédient</button></div></div>';
+    document.body.appendChild(back);
+    const go = back.querySelector(".primary");
+    const opener = document.activeElement;
+    const close = () => { back.remove(); document.removeEventListener("keydown", onKey); if (opener && opener.focus) opener.focus(); };
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    back.addEventListener("click", (e) => {
+      if (e.target === back || e.target.closest(".sheet-close")) { close(); return; }
+      const ing = e.target.closest(".ing");
+      if (!ing) return;
+      const name = ing.dataset.name;
+      if (picked.has(name)) picked.delete(name); else picked.add(name);
+      ing.setAttribute("aria-pressed", picked.has(name) ? "true" : "false");
+      go.disabled = picked.size === 0;
+      go.textContent = picked.size ? "Envoyer à Gamelle (" + picked.size + ")" : "Choisis au moins un ingrédient";
+    });
+    go.addEventListener("click", () => {
+      const list = [...picked].map(n => n.toLowerCase()).join(", ");
+      close();
+      send("Mode Frigo : j'ai chez moi " + list + ". Que puis-je cuisiner avec ?");
+    });
+    back.querySelector(".ing").focus();
+  }
+
+  /* ---------- Envoi ---------- */
+  function setBusy(on) {
+    state.busy = on;
+    els.send.disabled = on;
+    if (on) { els.quick.innerHTML = ""; els.quickLabel.hidden = true; }
+  }
+
+  async function askGamelle(text) {
+    if (DEMO) return demoReply(text);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 190000);
+    try {
+      // Corps « formulaire » : pas de requête préalable du navigateur (CORS).
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        // La page garde l'historique et envoie les 12 000 derniers caractères.
+        body: new URLSearchParams({ session_id: state.sessionId, message: text, history: state.history.slice(-12000) }),
+        signal: controller.signal
+      });
+      const reply = (await res.text()).trim();
+      if (!res.ok || !reply || reply === "Accepted") {
+        throw new Error("Gamelle n'a pas pu répondre (le scénario Make est peut-être en pause). Réessaie dans un instant.");
+      }
+      return reply;
+    } catch (e) {
+      if (e.name === "AbortError") throw new Error("La réponse a pris trop de temps. Réessaie dans un instant.");
+      if (e instanceof TypeError) throw new Error("Pas de connexion avec Gamelle. Vérifie ton réseau, puis réessaie.");
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function send(text, opts) {
+    opts = opts || {};
+    if (state.busy || !text) return;
+    state.lastMessage = text;
+    state.lastOpts = opts;
+    const turn = opts.retry ? lastTurn : newTurn();
+    if (!opts.retry) turn.appendChild(userBubble(text, opts.recap));
+    setBusy(true);
+    const long = opts.long || /je pèse|poids|moins cher|remplace|mode frigo/i.test(text);
+    const loader = addLoader(turn, long);
+    updateTurnMin();
+    pinTurn(turn);
+    try {
+      const reply = await askGamelle(text);
+      clearTimeout(loader.timer);
+      loader.remove();
+      renderBot(turn, reply);
+      state.history += (state.history ? "\n" : "") + "Étudiant : " + text + "\nGamelle : " + reply;
+      setBusy(false);
+      setQuick(reply);
+      updateSide();
+    } catch (e) {
+      clearTimeout(loader.timer);
+      loader.remove();
+      addError(turn, e.message);
+      setBusy(false);
+      showChips([], "", false);
+    }
+  }
+
+  els.composer.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = els.input.value.trim();
+    if (!text || state.busy) return;
+    els.input.value = "";
+    autoGrow();
+    send(text);
+  });
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); els.composer.requestSubmit(); }
+  });
+  function autoGrow() {
+    els.input.style.height = "auto";
+    els.input.style.height = Math.min(els.input.scrollHeight + 2, 120) + "px";
+  }
+  els.input.addEventListener("input", autoGrow);
+  els.restart.addEventListener("click", reset);
+
+  /* ---------- Mode test (?demo) : réponses d'exemple, aucun appel à Make ---------- */
+  function demoReply(text) {
+    const t = text.toLowerCase();
+    let r;
+    if (/voici mes réponses/.test(t) && /(prise de masse|sèche)/.test(t)) {
+      r = "Merci, c'est noté !\n\nPour calculer tes protéines, tu veux bien me donner ton poids ? C'est facultatif. Tu es plutôt entre 60 et 70 kg, entre 70 et 80 kg, ou ailleurs ?";
+    } else if (/voici mes réponses|je pèse|poids|moins cher/.test(t)) {
+      r = DEMO_WEEK;
+    } else if (/mode frigo/.test(t)) {
+      r = "Mode Frigo\nSuper, avec ce que tu as, je peux te proposer :\n- Riz sauté au poulet et à l'œuf, avec tes œufs et ton riz\n- Shakshuka express, avec ta pulpe de tomate\n\nPour compléter la semaine, quel est ton budget courses ?";
+    } else if (/recette détaillée/.test(t)) {
+      r = "Chili sin carne (2 portions, 25 min)\n\nIngrédients :\n- 1 boîte de haricots rouges (400 g)\n- 400 g de pulpe de tomate\n- 1 oignon\n- 150 g de riz\n\nÉtapes :\n- Fais revenir l'oignon émincé 3 min.\n- Ajoute les haricots rincés et la tomate, laisse mijoter 15 min.\n- Sers avec le riz.\n\nTu veux une autre recette de ta semaine ?";
+    } else if (/mode coach/.test(t)) {
+      r = "C'est parti, ton essai de 7 jours du Mode Coach est activé (démo). Je te ferai un rappel avant la fin de l'essai, sans prélèvement surprise.";
+    } else {
+      r = "Bien noté ! Dis-moi ce que tu veux faire ensuite.";
+    }
+    return new Promise(res => setTimeout(() => res(r), 1600));
+  }
+  const DEMO_WEEK = [
+    "Parfait ! Pour 70 à 80 kg en prise de masse, vise 112 à 128 g de protéines par jour (1,6 g/kg).",
+    "",
+    "Voici ta semaine (Standard, plaque et micro-ondes) :",
+    "",
+    "Lundi",
+    "- Petit-déjeuner : porridge banane et beurre de cacahuète",
+    "- Midi : riz sauté au poulet et à l'œuf",
+    "- Soir : chili sin carne",
+    "",
+    "Mardi",
+    "- Petit-déjeuner : porridge banane et beurre de cacahuète",
+    "- Midi : curry de pois chiches aux œufs",
+    "- Soir : pâtes crémeuses épinards et œuf",
+    "",
+    "Mercredi",
+    "- Petit-déjeuner : yaourt, banane et flocons d'avoine",
+    "- Midi : chili sin carne (restes de lundi)",
+    "- Soir : shakshuka express",
+    "",
+    "Jeudi",
+    "- Petit-déjeuner : porridge banane et beurre de cacahuète",
+    "- Midi : curry de pois chiches aux œufs (restes de mardi)",
+    "- Soir : dahl de lentilles aux carottes",
+    "",
+    "Vendredi",
+    "- Petit-déjeuner : yaourt, banane et flocons d'avoine",
+    "- Midi : riz sauté au poulet et à l'œuf (restes de lundi)",
+    "- Soir : bowl tofu, sauce cacahuète",
+    "",
+    "Samedi",
+    "- Petit-déjeuner : porridge banane et beurre de cacahuète",
+    "- Midi : dahl de lentilles aux carottes (restes de jeudi)",
+    "- Soir : chili con carne",
+    "",
+    "Dimanche",
+    "- Petit-déjeuner : yaourt, banane et flocons d'avoine",
+    "- Midi : pâtes crémeuses épinards et œuf (restes de mardi)",
+    "- Soir : chili con carne (restes de samedi)",
+    "",
+    "Liste de courses",
+    "",
+    "Fruits et légumes :",
+    "- 7 bananes",
+    "- 1 kg de carottes",
+    "- 3 oignons",
+    "Protéines :",
+    "- 12 œufs",
+    "- 400 g de blanc de poulet",
+    "- 250 g de steak haché 5 %",
+    "- 200 g de tofu",
+    "Féculents et épicerie :",
+    "- 1 kg de riz",
+    "- 500 g de pâtes",
+    "- 500 g de lentilles corail",
+    "- 2 boîtes de pois chiches",
+    "- 2 boîtes de haricots rouges",
+    "- 1 kg de flocons d'avoine",
+    "- 1 pot de beurre de cacahuète",
+    "Produits laitiers :",
+    "- 8 yaourts nature",
+    "- 1 L de lait demi-écrémé",
+    "Surgelés :",
+    "- 1 kg d'épinards hachés",
+    "",
+    "Coût estimé",
+    "- Environ 35,65 € pour la semaine, dans ton budget de 35 à 45 €.",
+    "Prix indicatifs relevés sur Carrefour en ligne le 13 novembre 2026 ; ils varient selon le magasin et les promotions.",
+    "",
+    "Tu peux essayer le Mode Coach gratuitement pendant 7 jours. On l'active ?"
+  ].join("\n");
+
+  reset();
+</script>
+</body>
+</html>
